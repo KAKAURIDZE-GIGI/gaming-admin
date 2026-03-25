@@ -1,195 +1,220 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Box,
   Button,
-  IconButton,
   TextField,
   MenuItem,
-  Typography,
   Paper,
+  Typography,
+  CircularProgress,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
-import { useFieldArray, type Control, type FieldErrors } from "react-hook-form";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable";
-import { SortableItem } from "@/shared/components";
-import type { RaffleSchemaType } from "../schemas";
+import SaveIcon from "@mui/icons-material/Save";
+import { useState } from "react";
+import { raffleSchema, type RaffleSchemaType } from "../schemas";
+import { RafflePrizeForm } from "./RafflePrizeForm";
+import { useUnsavedChanges } from "@/shared/hooks";
 
-interface RafflePrizeFormProps {
-  control: Control<RaffleSchemaType>;
-  errors: FieldErrors<RaffleSchemaType>;
+interface RaffleFormProps {
+  defaultValues?: RaffleSchemaType;
+  onSubmit: (data: RaffleSchemaType) => void;
+  isSubmitting: boolean;
+  mode: "create" | "edit";
+  isDrawn?: boolean;
 }
 
-export function RaffleForm({ control, errors }: RafflePrizeFormProps) {
-  const { fields, append, remove, move } = useFieldArray({
-    control,
-    name: "prizes",
-  });
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const handleAdd = () => {
-    append({
+const EMPTY_DEFAULTS: RaffleSchemaType = {
+  name: "",
+  description: "",
+  startDate: "",
+  endDate: "",
+  drawDate: "",
+  status: "draft",
+  ticketPrice: 10,
+  maxTicketsPerUser: 1,
+  prizes: [
+    {
       name: "",
       type: "coins",
       amount: 0,
       quantity: 1,
       imageUrl: "https://placehold.co/100x100",
-    });
-  };
+    },
+  ],
+  totalTicketLimit: null,
+};
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
+export function RaffleForm({
+  defaultValues,
+  onSubmit,
+  isSubmitting,
+  mode,
+  isDrawn,
+}: RaffleFormProps) {
+  const [hasTicketLimit, setHasTicketLimit] = useState(
+    defaultValues?.totalTicketLimit != null,
+  );
 
-    const oldIndex = fields.findIndex((f) => f.id === active.id);
-    const newIndex = fields.findIndex((f) => f.id === over.id);
-    move(oldIndex, newIndex);
-  };
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isDirty },
+  } = useForm<RaffleSchemaType>({
+    resolver: zodResolver(raffleSchema),
+    defaultValues: defaultValues || EMPTY_DEFAULTS,
+  });
+
+  useUnsavedChanges(isDirty);
+
+  if (isDrawn) {
+    return (
+      <Paper sx={{ p: 4, textAlign: "center" }}>
+        <Typography variant="h6" color="text.secondary">
+          This raffle has already been drawn and cannot be edited.
+        </Typography>
+      </Paper>
+    );
+  }
 
   return (
-    <Box>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-        }}
-      >
-        <Typography variant="h6">Prizes</Typography>
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Basic Information
+        </Typography>
+        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+          <TextField
+            label="Name"
+            fullWidth
+            sx={{ gridColumn: "span 2" }}
+            {...register("name")}
+            error={!!errors.name}
+            helperText={errors.name?.message}
+          />
+          <TextField
+            label="Description"
+            fullWidth
+            multiline
+            rows={3}
+            sx={{ gridColumn: "span 2" }}
+            {...register("description")}
+            error={!!errors.description}
+            helperText={errors.description?.message}
+          />
+          <TextField
+            label="Start Date"
+            type="datetime-local"
+            fullWidth
+            slotProps={{ inputLabel: { shrink: true } }}
+            {...register("startDate")}
+            error={!!errors.startDate}
+            helperText={errors.startDate?.message}
+          />
+          <TextField
+            label="End Date"
+            type="datetime-local"
+            fullWidth
+            slotProps={{ inputLabel: { shrink: true } }}
+            {...register("endDate")}
+            error={!!errors.endDate}
+            helperText={errors.endDate?.message}
+          />
+          <TextField
+            label="Draw Date"
+            type="datetime-local"
+            fullWidth
+            slotProps={{ inputLabel: { shrink: true } }}
+            {...register("drawDate")}
+            error={!!errors.drawDate}
+            helperText={errors.drawDate?.message}
+          />
+          <TextField
+            label="Status"
+            select
+            fullWidth
+            defaultValue={defaultValues?.status || "draft"}
+            {...register("status")}
+            error={!!errors.status}
+            helperText={errors.status?.message}
+          >
+            <MenuItem value="draft">Draft</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="drawn">Drawn</MenuItem>
+            <MenuItem value="cancelled">Cancelled</MenuItem>
+          </TextField>
+        </Box>
+      </Paper>
+
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Ticket Configuration
+        </Typography>
+        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+          <TextField
+            label="Ticket Price"
+            type="number"
+            fullWidth
+            {...register("ticketPrice", { valueAsNumber: true })}
+            error={!!errors.ticketPrice}
+            helperText={errors.ticketPrice?.message}
+          />
+          <TextField
+            label="Max Tickets Per User"
+            type="number"
+            fullWidth
+            {...register("maxTicketsPerUser", { valueAsNumber: true })}
+            error={!!errors.maxTicketsPerUser}
+            helperText={errors.maxTicketsPerUser?.message}
+          />
+          <Box sx={{ gridColumn: "span 2" }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={hasTicketLimit}
+                  onChange={(e) => setHasTicketLimit(e.target.checked)}
+                />
+              }
+              label="Set total ticket limit"
+            />
+            {hasTicketLimit && (
+              <TextField
+                label="Total Ticket Limit"
+                type="number"
+                fullWidth
+                sx={{ mt: 1 }}
+                {...register("totalTicketLimit", { valueAsNumber: true })}
+                error={!!errors.totalTicketLimit}
+                helperText={errors.totalTicketLimit?.message}
+              />
+            )}
+          </Box>
+        </Box>
+      </Paper>
+
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <RafflePrizeForm control={control} errors={errors} />
+      </Paper>
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
         <Button
-          startIcon={<AddIcon />}
-          onClick={handleAdd}
-          variant="outlined"
-          size="small"
+          type="submit"
+          variant="contained"
+          size="large"
+          startIcon={
+            isSubmitting ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              <SaveIcon />
+            )
+          }
+          disabled={isSubmitting}
         >
-          Add Prize
+          {mode === "create" ? "Create Raffle" : "Save Changes"}
         </Button>
       </Box>
-
-      {typeof errors.prizes?.message === "string" && (
-        <Typography color="error" variant="body2" sx={{ mb: 1 }}>
-          {errors.prizes.message}
-        </Typography>
-      )}
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={fields.map((f) => f.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {fields.map((field, index) => (
-            <SortableItem key={field.id} id={field.id}>
-              <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant="subtitle2">
-                    Prize #{index + 1}
-                  </Typography>
-                  {fields.length > 1 && (
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => remove(index)}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                </Box>
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr",
-                    gap: 2,
-                  }}
-                >
-                  <TextField
-                    label="Name"
-                    size="small"
-                    {...control.register(`prizes.${index}.name`)}
-                    error={!!errors.prizes?.[index]?.name}
-                    helperText={errors.prizes?.[index]?.name?.message}
-                  />
-                  <TextField
-                    label="Type"
-                    size="small"
-                    select
-                    defaultValue={field.type}
-                    {...control.register(`prizes.${index}.type`)}
-                    error={!!errors.prizes?.[index]?.type}
-                    helperText={errors.prizes?.[index]?.type?.message}
-                  >
-                    <MenuItem value="coins">Coins</MenuItem>
-                    <MenuItem value="freeSpin">Free Spin</MenuItem>
-                    <MenuItem value="bonus">Bonus</MenuItem>
-                  </TextField>
-                  <TextField
-                    label="Amount"
-                    type="number"
-                    size="small"
-                    {...control.register(`prizes.${index}.amount`, {
-                      valueAsNumber: true,
-                    })}
-                    error={!!errors.prizes?.[index]?.amount}
-                    helperText={errors.prizes?.[index]?.amount?.message}
-                  />
-                  <TextField
-                    label="Quantity"
-                    type="number"
-                    size="small"
-                    {...control.register(`prizes.${index}.quantity`, {
-                      valueAsNumber: true,
-                    })}
-                    error={!!errors.prizes?.[index]?.quantity}
-                    helperText={errors.prizes?.[index]?.quantity?.message}
-                  />
-                  <TextField
-                    label="Image URL"
-                    size="small"
-                    sx={{ gridColumn: "span 2" }}
-                    {...control.register(`prizes.${index}.imageUrl`)}
-                    error={!!errors.prizes?.[index]?.imageUrl}
-                    helperText={errors.prizes?.[index]?.imageUrl?.message}
-                  />
-                </Box>
-              </Paper>
-            </SortableItem>
-          ))}
-        </SortableContext>
-      </DndContext>
-
-      {fields.length === 0 && (
-        <Typography color="text.secondary" sx={{ textAlign: "center", py: 3 }}>
-          No prizes added. Click "Add Prize" to start.
-        </Typography>
-      )}
     </Box>
   );
 }
