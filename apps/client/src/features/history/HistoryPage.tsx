@@ -21,6 +21,7 @@ const GAME_COLORS = {
   wheel: "secondary",
   raffle: "primary",
   leaderboard: "success",
+  slot: "warning",
 } as const;
 
 export default function HistoryPage() {

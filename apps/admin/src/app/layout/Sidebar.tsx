@@ -14,6 +14,7 @@ import {
 import LeaderboardIcon from "@mui/icons-material/EmojiEvents";
 import RaffleIcon from "@mui/icons-material/ConfirmationNumber";
 import WheelIcon from "@mui/icons-material/Casino";
+import SlotIcon from "@mui/icons-material/VideogameAsset";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   },
   { label: "Raffles", path: ROUTES.RAFFLE.LIST, icon: <RaffleIcon /> },
   { label: "Wheels", path: ROUTES.WHEEL.LIST, icon: <WheelIcon /> },
+  { label: "Slots", path: ROUTES.SLOT.LIST, icon: <SlotIcon /> },
 ];
 
 export function Sidebar() {

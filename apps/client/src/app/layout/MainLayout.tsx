@@ -22,6 +22,7 @@ import { useAuth } from "@/features/auth";
 import { useThemeMode } from "@/app/providers/useThemeMode";
 
 const NAV = [
+  { label: "Slots", to: ROUTES.SLOTS },
   { label: "Wheels", to: ROUTES.WHEELS },
   { label: "Raffles", to: ROUTES.RAFFLES },
   { label: "Leaderboards", to: ROUTES.LEADERBOARDS },

@@ -4,9 +4,11 @@
 const Wheel = require("../models/Wheel");
 const Raffle = require("../models/Raffle");
 const Leaderboard = require("../models/Leaderboard");
+const Slot = require("../models/Slot");
 const PlayHistory = require("../models/PlayHistory");
 const RaffleTicket = require("../models/RaffleTicket");
 const LeaderboardEntry = require("../models/LeaderboardEntry");
+const slotEngine = require("../lib/slotEngine");
 
 const MONETARY = new Set(["coins", "bonus"]); // prize types that pay cash
 
@@ -201,6 +203,57 @@ async function playLeaderboard(req, res) {
   });
 }
 
+// POST /api/play/slot/:id   { bet, lines }
+async function playSlot(req, res) {
+  const user = req.user;
+  const bet = Number(req.body.bet);
+  const lines = Number(req.body.lines);
+  const slot = await Slot.findById(req.params.id).catch(() => null);
+  if (!slot || slot.status !== "active") {
+    return err(res, 404, "Slot not available");
+  }
+
+  const bets = allowedBets(slot, 10);
+  if (!bets.includes(bet)) return err(res, 400, "Invalid bet size");
+  if (!slotEngine.ALLOWED_LINES.includes(lines)) {
+    return err(res, 400, "Lines must be 1, 3 or 9");
+  }
+
+  const stake = bet * lines; // bet per line
+  if (user.balance < stake) return err(res, 400, "Insufficient balance");
+
+  const { grid, winningLines, payout } = slotEngine.spin({
+    winRate: slot.winRate,
+    bet,
+    lines,
+  });
+  const net = payout - stake;
+
+  user.balance += net;
+  await user.save();
+  await PlayHistory.create({
+    userId: user.id,
+    gameType: "slot",
+    gameId: slot.id,
+    gameName: slot.name,
+    bet: stake,
+    outcome: winningLines.length
+      ? `${winningLines.length} line${winningLines.length > 1 ? "s" : ""} won`
+      : "No win",
+    amountWon: net,
+    balanceAfter: user.balance,
+  });
+
+  res.json({
+    grid,
+    winningLines,
+    lines,
+    payout,
+    amountWon: net,
+    balance: user.balance,
+  });
+}
+
 // GET /api/play/history?page=&limit=
 async function history(req, res) {
   const page = parseInt(req.query.page) || 1;
@@ -241,6 +294,7 @@ module.exports = {
   playWheel,
   playRaffle,
   playLeaderboard,
+  playSlot,
   history,
   standings,
 };

@@ -4,6 +4,7 @@ const connectDB = require("./config/db");
 const Leaderboard = require("./models/Leaderboard");
 const Raffle = require("./models/Raffle");
 const Wheel = require("./models/Wheel");
+const Slot = require("./models/Slot");
 const Admin = require("./models/Admin");
 
 const leaderboards = [
@@ -158,6 +159,23 @@ const wheels = [
   },
 ];
 
+const slots = [
+  {
+    name: "Fruit Frenzy",
+    description: "Classic fruit slot — spin across 1, 3 or 9 paylines.",
+    status: "active",
+    winRate: 30,
+    betSizes: [5, 10, 25, 50, 100],
+  },
+  {
+    name: "Berry Bonanza",
+    description: "High-volatility fruit reels with bigger stakes.",
+    status: "active",
+    winRate: 25,
+    betSizes: [10, 50, 100, 250, 500],
+  },
+];
+
 async function seed() {
   await connectDB();
 
@@ -165,13 +183,15 @@ async function seed() {
     Leaderboard.deleteMany({}),
     Raffle.deleteMany({}),
     Wheel.deleteMany({}),
+    Slot.deleteMany({}),
   ]);
 
   await Leaderboard.insertMany(leaderboards);
   await Raffle.insertMany(raffles);
   await Wheel.insertMany(wheels);
+  await Slot.insertMany(slots);
   console.log(
-    `Seeded ${leaderboards.length} leaderboards, ${raffles.length} raffles, ${wheels.length} wheels`,
+    `Seeded ${leaderboards.length} leaderboards, ${raffles.length} raffles, ${wheels.length} wheels, ${slots.length} slots`,
   );
 
   // Default admin (idempotent). Uses .save() so the password gets hashed.

@@ -18,6 +18,10 @@ import WheelList from "@/features/wheel/pages/WheelList";
 import WheelCreate from "@/features/wheel/pages/WheelCreate";
 import WheelEdit from "@/features/wheel/pages/WheelEdit";
 import WheelDetail from "@/features/wheel/pages/WheelDetail";
+import SlotList from "@/features/slot/pages/SlotList";
+import SlotCreate from "@/features/slot/pages/SlotCreate";
+import SlotEdit from "@/features/slot/pages/SlotEdit";
+import SlotDetail from "@/features/slot/pages/SlotDetail";
 
 // eslint-disable-next-line react-refresh/only-export-components
 function PageLoader() {
@@ -167,6 +171,40 @@ export const router = createBrowserRouter([
         element: (
           <Wrap feature="Wheel">
             <WheelDetail />
+          </Wrap>
+        ),
+      },
+
+      // Slot
+      {
+        path: ROUTES.SLOT.LIST,
+        element: (
+          <Wrap feature="Slot">
+            <SlotList />
+          </Wrap>
+        ),
+      },
+      {
+        path: ROUTES.SLOT.CREATE,
+        element: (
+          <Wrap feature="Slot">
+            <SlotCreate />
+          </Wrap>
+        ),
+      },
+      {
+        path: "/slots/:id/edit",
+        element: (
+          <Wrap feature="Slot">
+            <SlotEdit />
+          </Wrap>
+        ),
+      },
+      {
+        path: "/slots/:id",
+        element: (
+          <Wrap feature="Slot">
+            <SlotDetail />
           </Wrap>
         ),
       },

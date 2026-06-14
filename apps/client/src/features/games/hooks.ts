@@ -33,3 +33,13 @@ export const useLeaderboard = (id: string) =>
     queryFn: () => gamesApi.getLeaderboard(id),
     enabled: !!id,
   });
+
+export const useSlots = () =>
+  useQuery({ queryKey: ["slots"], queryFn: gamesApi.listSlots });
+
+export const useSlot = (id: string) =>
+  useQuery({
+    queryKey: ["slot", id],
+    queryFn: () => gamesApi.getSlot(id),
+    enabled: !!id,
+  });

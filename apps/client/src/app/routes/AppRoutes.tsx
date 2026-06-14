@@ -12,6 +12,8 @@ import RaffleList from "@/features/games/raffle/RaffleList";
 import RafflePlay from "@/features/games/raffle/RafflePlay";
 import LeaderboardList from "@/features/games/leaderboard/LeaderboardList";
 import LeaderboardPlay from "@/features/games/leaderboard/LeaderboardPlay";
+import SlotList from "@/features/games/slot/SlotList";
+import SlotPlay from "@/features/games/slot/SlotPlay";
 import HistoryPage from "@/features/history/HistoryPage";
 
 export const router = createBrowserRouter([
@@ -31,6 +33,8 @@ export const router = createBrowserRouter([
           { path: "/raffles/:id", element: <RafflePlay /> },
           { path: ROUTES.LEADERBOARDS, element: <LeaderboardList /> },
           { path: "/leaderboards/:id", element: <LeaderboardPlay /> },
+          { path: ROUTES.SLOTS, element: <SlotList /> },
+          { path: "/slots/:id", element: <SlotPlay /> },
           { path: ROUTES.HISTORY, element: <HistoryPage /> },
           { path: "*", element: <Navigate to={ROUTES.HOME} replace /> },
         ],

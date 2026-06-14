@@ -4,6 +4,7 @@ const {
   playWheel,
   playRaffle,
   playLeaderboard,
+  playSlot,
   history,
   standings,
 } = require("../controllers/playController");
@@ -16,6 +17,7 @@ router.use(protectUser);
 router.post("/wheel/:id", playWheel);
 router.post("/raffle/:id", playRaffle);
 router.post("/leaderboard/:id", playLeaderboard);
+router.post("/slot/:id", playSlot);
 router.get("/leaderboard/:id/standings", standings);
 router.get("/history", history);
 

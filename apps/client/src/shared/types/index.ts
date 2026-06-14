@@ -60,9 +60,17 @@ export interface Leaderboard {
   prizes: LeaderboardPrize[];
 }
 
+export interface Slot {
+  id: string;
+  name: string;
+  description: string;
+  winRate: number;
+  betSizes: number[];
+}
+
 export interface PlayRecord {
   id: string;
-  gameType: "wheel" | "raffle" | "leaderboard";
+  gameType: "wheel" | "raffle" | "leaderboard" | "slot";
   gameName: string;
   bet: number;
   outcome: string;

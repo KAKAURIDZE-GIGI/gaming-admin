@@ -2,6 +2,7 @@ import { Box, Grid, Paper, Stack, Typography } from "@mui/material";
 import CasinoIcon from "@mui/icons-material/Casino";
 import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import VideogameAssetIcon from "@mui/icons-material/VideogameAsset";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import { ROUTES } from "@/shared/lib/routes";
 import { formatCoins } from "@/shared/lib/format";
@@ -37,6 +38,15 @@ export default function Lobby() {
         Pick a game
       </Typography>
       <Grid container spacing={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <GameCard
+            to={ROUTES.SLOTS}
+            title="Fruit Slots"
+            description="Spin the fruit reels across 1, 3 or 9 paylines."
+            icon={<VideogameAssetIcon color="secondary" />}
+            chips={["🍒 Fruits", "1 / 3 / 9 lines"]}
+          />
+        </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <GameCard
             to={ROUTES.WHEELS}

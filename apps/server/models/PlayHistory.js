@@ -6,7 +6,7 @@ const playHistorySchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
     gameType: {
       type: String,
-      enum: ["wheel", "raffle", "leaderboard"],
+      enum: ["wheel", "raffle", "leaderboard", "slot"],
       required: true,
     },
     gameId: { type: mongoose.Schema.Types.ObjectId, required: true },

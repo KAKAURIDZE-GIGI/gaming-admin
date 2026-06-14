@@ -9,5 +9,7 @@ export const ROUTES = {
   RAFFLE_PLAY: (id: string) => `/raffles/${id}`,
   LEADERBOARDS: "/leaderboards",
   LEADERBOARD_PLAY: (id: string) => `/leaderboards/${id}`,
+  SLOTS: "/slots",
+  SLOT_PLAY: (id: string) => `/slots/${id}`,
   HISTORY: "/history",
 } as const;

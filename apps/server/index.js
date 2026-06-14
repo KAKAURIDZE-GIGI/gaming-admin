@@ -11,6 +11,7 @@ const gamesRoutes = require("./routes/games");
 const Leaderboard = require("./models/Leaderboard");
 const Raffle = require("./models/Raffle");
 const Wheel = require("./models/Wheel");
+const Slot = require("./models/Slot");
 const { protect } = require("./middleware/auth");
 
 const app = express();
@@ -37,6 +38,10 @@ app.use(
 app.use(
   "/api/wheels",
   resourceRouter(Wheel, { label: "Wheel", arrayFields: ["segments"] }, [protect]),
+);
+app.use(
+  "/api/slots",
+  resourceRouter(Slot, { label: "Slot" }, [protect]),
 );
 
 // Central error handler so async controller throws return JSON, not HTML.

@@ -3,6 +3,7 @@ import type {
   Leaderboard,
   PlayRecord,
   Raffle,
+  Slot,
   Wheel,
 } from "@/shared/types";
 
@@ -20,6 +21,10 @@ export const gamesApi = {
     (await apiClient.get("/games/leaderboards")).data.data,
   getLeaderboard: async (id: string): Promise<Leaderboard> =>
     (await apiClient.get(`/games/leaderboards/${id}`)).data,
+  listSlots: async (): Promise<Slot[]> =>
+    (await apiClient.get("/games/slots")).data.data,
+  getSlot: async (id: string): Promise<Slot> =>
+    (await apiClient.get(`/games/slots/${id}`)).data,
 };
 
 // ---- Server-authoritative play actions ----
@@ -41,6 +46,14 @@ export interface LeaderboardResult {
   totalScore: number;
   rank: number;
   cashWon: number;
+  amountWon: number;
+  balance: number;
+}
+export interface SlotResult {
+  grid: string[][]; // reel-major: grid[reel][row] = symbol key
+  winningLines: number[];
+  lines: number;
+  payout: number;
   amountWon: number;
   balance: number;
 }
@@ -66,6 +79,8 @@ export const playApi = {
     (await apiClient.post(`/play/raffle/${id}`, { bet, quantity })).data,
   leaderboard: async (id: string, bet: number): Promise<LeaderboardResult> =>
     (await apiClient.post(`/play/leaderboard/${id}`, { bet })).data,
+  slot: async (id: string, bet: number, lines: number): Promise<SlotResult> =>
+    (await apiClient.post(`/play/slot/${id}`, { bet, lines })).data,
   standings: async (id: string): Promise<StandingsResponse> =>
     (await apiClient.get(`/play/leaderboard/${id}/standings`)).data,
   history: async (
