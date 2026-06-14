@@ -56,6 +56,32 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           MuiPaper: {
             defaultProps: { elevation: 0 },
           },
+          MuiToggleButtonGroup: {
+            styleOverrides: {
+              root: {
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+              },
+              grouped: {
+                margin: 0,
+                border: "1px solid",
+                borderRadius: "999px !important",
+                "&:not(:first-of-type)": {
+                  marginLeft: 0,
+                  borderLeft: "1px solid",
+                },
+              },
+            },
+          },
+          MuiToggleButton: {
+            styleOverrides: {
+              root: {
+                textTransform: "none",
+                fontWeight: 700,
+              },
+            },
+          },
         },
       }),
     [mode],

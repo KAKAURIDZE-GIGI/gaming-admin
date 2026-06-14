@@ -28,7 +28,7 @@
 | აპლიკაცია | საქაღალდე | პორტი | დანიშნულება |
 |-----------|-----------|-------|-------------|
 | Admin Dashboard | `apps/admin` | 3000 | თამაშების კონფიგურაცია და მართვა |
-| Player Client | `apps/client` | 5173 | მოთამაშის ინტერფეისი — რეგისტრაცია, თამაში, ისტორია |
+| Player Client | `apps/client` | 3001 | მოთამაშის ინტერფეისი — რეგისტრაცია, თამაში, ისტორია |
 | Backend Server | `apps/server` | 5000 | `Express` REST API და `MongoDB` |
 
 პროექტი აგებულია **npm workspaces** მონორეპოზიტორიის პრინციპით: ერთი root `package.json`, ერთი `node_modules` და სამი workspace (`admin`, `client`, `server`). ეს მიდგომა საშუალებას იძლევა დამოკიდებულებები ერთხელ დაინსტალირდეს, ხოლო სკრიპტები root დონიდან მართოს.
@@ -80,7 +80,7 @@
 gaming-admin/
 ├── apps/
 │   ├── admin/      # ადმინისტრაციის პანელი (პორტი 3000)
-│   ├── client/     # მოთამაშის აპლიკაცია (პორტი 5173)
+│   ├── client/     # მოთამაშის აპლიკაცია (პორტი 3001)
 │   └── server/     # REST API (პორტი 5000)
 ├── docs/
 │   └── DOCUMENTATION_KA.md
@@ -149,6 +149,32 @@ Backend-ი უზრუნველყოფს **ორ განსხვა�
 
 **სლოტი:** სერვერი `slotEngine.js`-ით გენერირებს 3×3 გრიდს, ამოწმებს არჩეულ payline-ებს და აბრუნებს მოგების ოდენობას. `winRate` პარამეტრი (0–100%) განსაზღვრავს მოგების სპინის ალბათობას.
 
+### 2.5. ეკონომიკა და ბალანსი
+
+ყოველი თამაში იყენებს ერთ ფორმულას:
+
+```
+ბალანსის ცვლილება (net) = payout − stake
+```
+
+- **`stake`** — რასაც იხდით ამ სპინისთვის.
+- **`payout`** — მთლიანი მოგება შედეგიდან (ფსონის გამოკლებამდე).
+- **`amountWon`** API-ში და ისტორიაში — **net** ცვლილება (შეიძლება იყოს უარყოფითი).
+
+**ბორბალი:**
+
+- ფსონი: არჩეული `bet` `betSizes`-დან.
+- მოგება მხოლოდ `coins` / `bonus` ტიპისთვის: `payout = prizeAmount × (bet ÷ min(betSizes))`.
+- `freeSpin`, `nothing` → payout `0` (ფსონი მაინც იკარიება).
+
+**სლოტი:**
+
+- `stake = bet × lines` (lines: 1, 3 ან 9).
+- თითო მოგებული ხაზი: `bet × სიმბოლოს მულტიპლიკატორი` (🍒×2 … 🍉×12).
+- `payout` = ყველა მოგებული ხაზის ჯამი.
+
+**UI ბალანსი:** სერვერზე ბალანსი იცვლება API პასუხისთანავე (ატომური `$gte stake` შემოწმებით). ჰედერის chip კი **ანიმაციის დასრულების შემდეგ** განახლდება — რილების გაჩერება / ბორბლის შეჩერება — რათა ვიზუალი და თანხა ერთად „გამოჩნდეს“.
+
 ### 3.5. მონაცემთა მოდელები
 
 | მოდელი | აღწერა |
@@ -198,6 +224,7 @@ Backend-ი უზრუნველყოფს **ორ განსხვა�
 
 - მისალმების banner ბალანსით.
 - `GameCard`-ები Slots, Wheels და History-ზე გადასასვლელად.
+- ბალანსის chip განახლდება spin-ის ანიმაციის დასრულების შემდეგ (სერვერზე უკვე განახლებულია).
 
 #### ბორბალი
 
@@ -281,7 +308,7 @@ npm run create-admin -- email@example.com password123 "Admin Name" admin
 | სერვისი | URL | აღწერა |
 |---------|-----|--------|
 | Admin | http://localhost:3000 | ადმინ პანელი |
-| Client | http://localhost:5173 | მოთამაშის აპი |
+| Client | http://localhost:3001 | მოთამაშის აპი |
 | Server | http://localhost:5000 | REST API |
 
 Vite dev server-ები proxy-ს `/api` მოთხოვნებს `localhost:5000`-ზე, ამიტომ frontend-ები და backend ურთიერთობენ ერთი origin-ის მეშვეობით განვითარების დროს.
@@ -295,6 +322,7 @@ Vite dev server-ები proxy-ს `/api` მოთხოვნებს `local
 | `JWT_EXPIRES_IN` | ტოკენის ვადა | `7d` |
 | `PORT` | API სერვერის პორტი | `5000` |
 | `DEFAULT_BALANCE` | ახალი მოთამაშის საწყისი ბალანსი | `1000` |
+| `CLIENT_URL` | მოთამაშის აპის URL (ვერიფიკაციის ბმულები) | `http://localhost:3001` |
 | `RESEND_API_KEY` | ელფოსტის ვერიფიკაცია (არასავალდებულო) | — |
 
 > `apps/server/.env` gitignore-შია. არასდროს commit-ეთ რეალურ credentials-ებს.
@@ -308,13 +336,19 @@ Vite dev server-ები proxy-ს `/api` მოთხოვნებს `local
 | ბრძანება | აღწერა |
 |----------|--------|
 | `npm run dev` | Admin dev server (პორტი 3000) |
-| `npm run client` | Client dev server (პორტი 5173) |
+| `npm run dev:admin` | იგივე, რაც `dev` |
+| `npm run client` | Client dev server (პორტი 3001) |
+| `npm run dev:client` | იგივე, რაც `client` |
 | `npm run server` | Backend API (პორტი 5000) |
 | `npm run start:all` | სამივე ერთად (`concurrently`) |
+| `npm run check` | lint + test + tsc + build (CI-სთვის) |
+| `npm run lint:all` | Client + Admin ESLint |
+| `npm run build:all` | ორივე frontend production build |
+| `npm run test:all` | ყველა unit test ერთხელ |
 | `npm run build` | Admin production build |
 | `npm run client:build` | Client production build |
 | `npm run test:run` | Admin unit tests |
-| `npm run test:run --workspace client` | Client unit tests |
+| `npm run client:test:run` | Client unit tests |
 | `npm run lint` | Admin ESLint |
 | `npm run client:lint` | Client ESLint |
 | `npm run seed` | DB reset + sample data |
@@ -373,7 +407,7 @@ Base URL: `http://localhost:5000/api` (Vite proxy-ით `/api` განვი�
 | POST | `/api/user-auth/register` | ახალი მოთამაშის რეგისტრაცია |
 | POST | `/api/user-auth/login` | შესვლა, აბრუნებს JWT |
 | GET | `/api/user-auth/me` | მიმდინარე მოთამაშის პროფილი |
-| POST | `/api/user-auth/verify-email` | ელფოსტის ვერიფიკაცია |
+| POST | `/api/user-auth/verify` | ელფოსტის ვერიფიკაცია `{ token }`-ით |
 
 ### 7.3. Admin CRUD — Wheels
 
@@ -468,8 +502,16 @@ NODE_ENV=production node index.js
 Admin და Client build-ები შეიძლება განთავსდეს:
 
 - **Nginx** — `root` → `dist/`, `try_files $uri /index.html`.
-- **Vercel / Netlify** — SPA redirect rule.
+- **Vercel / Netlify** — SPA redirect rule (`apps/*/public/_redirects`):
+
+  ```
+  /*    /index.html   200
+  ```
+
+  პირდაპირი URL-ებზე (მაგ. `/login`) ეს rule გარეშე 404 დააბრუნებს.
 - **S3 + CloudFront** — static hosting.
+
+Production-ში client/admin axios `baseURL` არის სრული API მისამართი (`urls.ts`: dev → `http://localhost:5000/api`, prod → Render URL). Vite proxy მხოლოდ განვითარების დროს მუშაობს.
 
 API proxy მაგალითი:
 
@@ -503,10 +545,8 @@ CMD ["node", "index.js"]
 რეკომენდებული pipeline:
 
 1. `npm install`
-2. `npm run lint` + `npm run client:lint`
-3. `npm run test:run` + client tests
-4. `npm run build` + `npm run client:build`
-5. Deploy artifacts
+2. `npm run check` (ან ცალ-ცალკე: `lint:all`, `test:all`, `tsc -b`, `build:all`)
+3. Deploy artifacts
 
 ---
 
@@ -540,8 +580,8 @@ CMD ["node", "index.js"]
 **გადაწყვეტა:**
 
 - Server გაშვებულია პორტ 5000-ზე?
-- `vite.config.ts` proxy target: `http://localhost:5000`.
-- Client-ის axios `baseURL`: `/api`.
+- `vite.config.ts` proxy target: `http://localhost:5000` (მხოლოდ dev).
+- Client/admin `BACKEND_BASE_URL`: dev-ში `http://localhost:5000/api`.
 
 ### 9.4. Seed ვერ მუშაობს
 
@@ -581,7 +621,16 @@ CMD ["node", "index.js"]
 - `cors()` middleware server-ში — production-ში restrict origins.
 - Same-origin proxy (Nginx `/api` → backend) — CORS არ სჭირდება.
 
-### 9.8. Spin Limit (Wheel)
+### 9.9. Netlify / SPA — 404 პირდაპირ route-ზე
+
+**სიმპტომი:** `/login` ან `/wheels/:id` გვიდებაზე 404.
+
+**გადაწყვეტა:**
+
+- დარწმუნდით, რომ `apps/client/public/_redirects` (და admin-ის ანალოგი) build-ში შედის.
+- შემდეგ `npm run client:build` და თავიდან deploy.
+
+### 9.10. Spin Limit (Wheel)
 
 **სიმპტომი:** 403 "You have reached the spin limit for this wheel".
 

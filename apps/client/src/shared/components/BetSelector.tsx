@@ -1,5 +1,10 @@
-import { ToggleButton, ToggleButtonGroup, Typography, Box } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import {
+  PillToggleGroup,
+  ToggleButton,
+} from "./PillToggleGroup";
+import { pillToggleButtonSx } from "./pillToggleStyles";
 
 export function BetSelector({
   betSizes,
@@ -15,33 +20,38 @@ export function BetSelector({
   label?: string;
 }) {
   return (
-    <Box>
-      <Typography variant="overline" color="text.secondary">
+    <Stack spacing={1} sx={{ width: "100%" }}>
+      <Typography
+        variant="overline"
+        color="text.secondary"
+        sx={{ display: "block", lineHeight: 1.6 }}
+      >
         {label}
       </Typography>
-      <ToggleButtonGroup
+      <PillToggleGroup
         exclusive
         value={value}
         onChange={(_, v) => v != null && onChange(v)}
         disabled={disabled}
-        sx={{ flexWrap: "wrap", gap: 1, mt: 0.5 }}
       >
         {betSizes.map((bet) => (
           <ToggleButton
             key={bet}
             value={bet}
-            sx={{
-              borderRadius: "999px !important",
-              border: "1px solid",
-              borderColor: "divider",
-              px: 2,
-            }}
+            sx={(theme) => pillToggleButtonSx(theme)}
           >
-            <MonetizationOnIcon sx={{ fontSize: 18, mr: 0.5, color: "secondary.main" }} />
+            <MonetizationOnIcon
+              sx={{
+                fontSize: 18,
+                mr: 0.5,
+                color: "secondary.main",
+                ".Mui-selected &": { color: "inherit" },
+              }}
+            />
             {bet}
           </ToggleButton>
         ))}
-      </ToggleButtonGroup>
-    </Box>
+      </PillToggleGroup>
+    </Stack>
   );
 }

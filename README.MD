@@ -149,7 +149,7 @@ Or run each app in a separate terminal:
 # Terminal 1 — Admin dashboard (port 3000)
 npm run dev
 
-# Terminal 2 — Player client (port 5173)
+# Terminal 2 — Player client (port 3001)
 npm run client
 
 # Terminal 3 — Backend API (port 5000)
@@ -161,7 +161,7 @@ npm run server
 | App    | URL                      | Purpose                          |
 | ------ | ------------------------ | -------------------------------- |
 | Admin  | http://localhost:3000    | Operator dashboard               |
-| Client | http://localhost:5173    | Player gaming app                |
+| Client | http://localhost:3001    | Player gaming app                |
 | Server | http://localhost:5000    | REST API                         |
 
 > Vite dev servers proxy `/api` requests to `http://localhost:5000`, so frontends and backend communicate seamlessly during development.
@@ -174,6 +174,9 @@ npm run server
 | `JWT_SECRET`     | Secret used to sign JWT tokens               | `a-long-random-string`               |
 | `JWT_EXPIRES_IN` | Token lifetime                               | `7d`                                 |
 | `PORT`           | API server port                              | `5000`                               |
+| `CLIENT_URL`     | Player app URL (email verification links)    | `http://localhost:3001`              |
+| `DEFAULT_BALANCE`| Starting coins for new players               | `1000`                               |
+| `RESEND_API_KEY` | Email provider key (optional in dev)         | —                                    |
 
 > `apps/server/.env` is gitignored. Never commit real credentials — use `.env.example` as the committed template.
 
@@ -199,13 +202,19 @@ All scripts run from the **repository root** and delegate to the right workspace
 | Script                 | Workspace | Description                          |
 | ---------------------- | --------- | ------------------------------------ |
 | `npm run dev`          | admin     | Start admin Vite dev server (3000)   |
+| `npm run dev:admin`    | admin     | Same as `dev`                        |
+| `npm run client`       | client    | Start player client dev server (3001)|
+| `npm run dev:client`   | client    | Same as `client`                     |
 | `npm run build`        | admin     | Type-check and build admin           |
-| `npm run lint`         | admin     | Lint admin source files              |
-| `npm test`             | admin     | Run admin unit tests (watch mode)    |
-| `npm run test:run`     | admin     | Run admin unit tests once            |
-| `npm run client`       | client    | Start player client dev server       |
 | `npm run client:build` | client    | Type-check and build player client   |
+| `npm run lint`         | admin     | Lint admin source files              |
 | `npm run client:lint`  | client    | Lint player client source files      |
+| `npm run lint:all`     | all       | Lint client + admin                  |
+| `npm run build:all`    | all       | Production build client + admin      |
+| `npm run test:run`     | admin     | Run admin unit tests once            |
+| `npm run test:all`     | all       | Run all unit tests once              |
+| `npm run check`        | all       | lint + test + tsc + build (CI-ready) |
+| `npm test`             | admin     | Run admin unit tests (watch mode)    |
 | `npm run server`       | server    | Start the Express API on port 5000   |
 | `npm run seed`         | server    | Reset collections + seed sample data |
 | `npm run create-admin` | server    | Add or update an admin user          |
@@ -237,7 +246,7 @@ Send the token on protected requests via the `Authorization: Bearer <token>` hea
 | POST   | `/api/user-auth/register`     | Register a new player    |
 | POST   | `/api/user-auth/login`        | Log in, returns JWT      |
 | GET    | `/api/user-auth/me`           | Current player profile   |
-| POST   | `/api/user-auth/verify-email` | Verify email token       |
+| POST   | `/api/user-auth/verify`       | Verify email with token  |
 
 ### Admin CRUD — Wheels
 
@@ -272,11 +281,71 @@ Send the token on protected requests via the `Authorization: Bearer <token>` hea
 
 All play endpoints require a player JWT. Outcomes are computed server-side; the client only renders results.
 
+**Balance on the server** is updated atomically when the play API responds (`balance >= stake` check, then apply net change).
+
+**Balance in the UI** (header chip) updates when the spin animation finishes — reels stop or the wheel stops spinning — so the display stays in sync with the reveal. If you leave the page mid-animation, balance still syncs on unmount.
+
 | Method | Endpoint              | Description                    | Request Body        |
 | ------ | --------------------- | ------------------------------ | ------------------- |
 | POST   | `/api/play/wheel/:id` | Spin a wheel                   | `{ bet }`           |
 | POST   | `/api/play/slot/:id`  | Spin slot reels                | `{ bet, lines }`    |
 | GET    | `/api/play/history`   | Paginated play history         | `?page=&limit=`     |
+
+---
+
+## Game economy (how much you pay & get)
+
+Every play uses the same formula:
+
+```
+net change to balance = payout − stake
+```
+
+- **`payout`** — gross coins won from the result (before subtracting stake).
+- **`stake`** — what you pay for the spin.
+- **`amountWon` in API/history** — the **net** change (can be negative).
+
+### Wheel
+
+1. You pick a bet from the wheel’s configured `betSizes`.
+2. Server picks a segment by **weight** (higher weight = more likely).
+3. **Payout** (only for `coins` or `bonus` prize types):
+
+   ```
+   payout = prizeAmount × (your bet ÷ smallest allowed bet)
+   ```
+
+4. `freeSpin`, `nothing`, etc. → payout `0` (you still lose the bet).
+
+**Example:** smallest bet `10`, prize `500 coins`, you bet `50` → payout `2500`, net `2500 − 50 = +2450`.
+
+### Fruit slots
+
+1. **Stake** = `bet per line × lines` (lines: 1, 3, or 9).
+2. Each **winning payline** pays: `bet per line × symbol multiplier`.
+3. **Total payout** = sum of all winning lines on that spin.
+4. **Net** = payout − stake.
+
+| Symbol | Multiplier |
+| ------ | ---------- |
+| 🍒 cherry | ×2 |
+| 🍋 lemon | ×3 |
+| 🍊 orange | ×4 |
+| 🍓 strawberry | ×5 |
+| 🍇 grape | ×8 |
+| 🍉 watermelon | ×12 |
+
+**Example:** bet/line `10`, `3` lines → stake `30`. One cherry line wins → payout `20`, net `−10` (you can “hit a line” but still lose overall).
+
+### Reading the player UI
+
+| UI element | Meaning |
+| ---------- | ------- |
+| Balance chip | Current coins |
+| `SPIN · 30` | Total stake this spin |
+| Toast “You won X coins!” | Gross **payout** |
+| Result alert `+N` / `−N` | **Net** balance change |
+| History “Result” column | Net change per play |
 
 ---
 
@@ -299,17 +368,31 @@ All play endpoints require a player JWT. Outcomes are computed server-side; the 
 - **Fruit Slots** — 3×3 reels with 1, 3, or 9 paylines.
 - **Play history** — Paginated table of all past plays.
 - **Responsive UI** — Consistent design system with dark/light mode.
+- **Production API URL** — Client/admin use `localhost:5000/api` in dev and the deployed Render API in production (`apps/*/src/shared/constants/urls.ts`).
+
+### Static hosting (Netlify / Vercel)
+
+Both frontends include `public/_redirects` for SPA routing:
+
+```
+/*    /index.html   200
+```
+
+Without this rule, direct URLs (e.g. `/login`) return 404 on static hosts. Rebuild and redeploy after changing `public/`.
 
 ---
 
 ## Testing
 
 ```bash
-# Admin unit tests
+# Full quality gate (lint + test + TypeScript + build)
+npm run check
+
+# Admin unit tests only
 npm run test:run
 
-# Player client unit tests
-npm run test:run --workspace client
+# Player client (passes even with no test files yet)
+npm run client:test:run
 ```
 
 ---

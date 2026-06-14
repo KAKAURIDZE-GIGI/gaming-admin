@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link as RouterLink } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -8,14 +8,17 @@ import {
   Button,
   Grid,
   Stack,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { ROUTES } from "@/shared/lib/routes";
 import { formatSigned } from "@/shared/lib/format";
 import { BetSelector } from "@/shared/components/BetSelector";
+import {
+  PillToggleGroup,
+  ToggleButton,
+} from "@/shared/components/PillToggleGroup";
+import { pillToggleButtonSx } from "@/shared/components/pillToggleStyles";
 import { PageSection } from "@/shared/components/PageLayout";
 import { QueryState } from "@/shared/components/QueryState";
 import { useAuth } from "@/features/auth";
@@ -33,21 +36,30 @@ export default function SlotPlay() {
   const [bet, setBet] = useState<number | null>(null);
   const [lines, setLines] = useState<number>(1);
   const [spinning, setSpinning] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [spinId, setSpinId] = useState(0);
   const [finalGrid, setFinalGrid] = useState<string[][] | null>(null);
   const [cells, setCells] = useState<Set<string>>(new Set());
   const [result, setResult] = useState<SlotResult | null>(null);
   const pending = useRef<SlotResult | null>(null);
 
+  useEffect(() => {
+    return () => {
+      const res = pending.current;
+      if (res) setBalance(res.balance);
+    };
+  }, [setBalance]);
+
   const effectiveBet = bet ?? slot?.betSizes[0] ?? null;
   const stake = (effectiveBet ?? 0) * lines;
 
   const handleSpin = async () => {
-    if (!slot || effectiveBet == null || spinning) return;
+    if (!slot || effectiveBet == null || spinning || busy) return;
     if ((user?.balance ?? 0) < stake) {
       toast.error("Not enough coins for this stake");
       return;
     }
+    setBusy(true);
     setResult(null);
     setCells(new Set());
     try {
@@ -59,17 +71,20 @@ export default function SlotPlay() {
       setSpinId((n) => n + 1);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Spin failed");
+      setBusy(false);
     }
   };
 
   const handleSettled = () => {
     setSpinning(false);
+    setBusy(false);
     const res = pending.current;
     if (!res) return;
     setResult(res);
     setBalance(res.balance);
+    pending.current = null;
     queryClient.invalidateQueries({ queryKey: ["history"] });
-    if (res.amountWon > 0) toast.success(`You won ${res.amountWon} coins!`);
+    if (res.payout > 0) toast.success(`You won ${res.payout} coins!`);
     else toast("No win this time");
   };
 
@@ -102,7 +117,7 @@ export default function SlotPlay() {
                 variant="contained"
                 size="large"
                 onClick={handleSpin}
-                disabled={spinning || effectiveBet == null}
+                disabled={spinning || busy || effectiveBet == null}
                 sx={{ mt: 3, minWidth: 200, fontSize: 18 }}
               >
                 {spinning ? "Spinning…" : `SPIN · ${stake}`}
@@ -123,59 +138,76 @@ export default function SlotPlay() {
 
           <Grid size={{ xs: 12, md: 5 }}>
             <PageSection>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 2, lineHeight: 1.6, wordBreak: "break-word" }}
+              >
                 {slot.description}
               </Typography>
 
-              <BetSelector
-                betSizes={slot.betSizes}
-                value={effectiveBet}
-                onChange={setBet}
-                disabled={spinning}
-                label="Bet per line"
-              />
+              <Stack spacing={3}>
+                <BetSelector
+                  betSizes={slot.betSizes}
+                  value={effectiveBet}
+                  onChange={setBet}
+                  disabled={spinning || busy}
+                  label="Bet per line"
+                />
 
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="overline" color="text.secondary">
-                  Lines to play
-                </Typography>
-                <ToggleButtonGroup
-                  exclusive
-                  value={lines}
-                  onChange={(_, v) => v != null && setLines(v)}
-                  disabled={spinning}
-                  sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 0.5 }}
-                >
-                  {LINE_OPTIONS.map((n) => (
-                    <ToggleButton key={n} value={n} sx={{ px: 3, borderRadius: "999px !important" }}>
-                      {n} line{n > 1 ? "s" : ""}
-                    </ToggleButton>
-                  ))}
-                </ToggleButtonGroup>
-              </Box>
-
-              <Stack direction="row" justifyContent="space-between" sx={{ mt: 3 }}>
-                <Typography color="text.secondary">Total stake</Typography>
-                <Typography sx={{ fontWeight: 800 }}>{stake} coins</Typography>
-              </Stack>
-
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="overline" color="text.secondary">
-                  Paytable (× bet, per line)
-                </Typography>
-                <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                  {Object.entries(SLOT_SYMBOLS)
-                    .sort((a, b) => a[1].multiplier - b[1].multiplier)
-                    .map(([key, s]) => (
-                      <Stack key={key} direction="row" justifyContent="space-between">
-                        <Typography>
-                          {emojiFor(key)} {emojiFor(key)} {emojiFor(key)}
-                        </Typography>
-                        <Typography color="text.secondary">×{s.multiplier}</Typography>
-                      </Stack>
+                <Stack spacing={1} sx={{ width: "100%" }}>
+                  <Typography
+                    variant="overline"
+                    color="text.secondary"
+                    sx={{ display: "block", lineHeight: 1.6 }}
+                  >
+                    Lines to play
+                  </Typography>
+                  <PillToggleGroup
+                    exclusive
+                    value={lines}
+                    onChange={(_, v) => v != null && setLines(v)}
+                    disabled={spinning || busy}
+                  >
+                    {LINE_OPTIONS.map((n) => (
+                      <ToggleButton
+                        key={n}
+                        value={n}
+                        sx={(theme) => ({ ...pillToggleButtonSx(theme), px: 3 })}
+                      >
+                        {n} line{n > 1 ? "s" : ""}
+                      </ToggleButton>
                     ))}
+                  </PillToggleGroup>
                 </Stack>
-              </Box>
+
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography color="text.secondary">Total stake</Typography>
+                  <Typography sx={{ fontWeight: 800 }}>{stake} coins</Typography>
+                </Stack>
+
+                <Box>
+                  <Typography
+                    variant="overline"
+                    color="text.secondary"
+                    sx={{ display: "block", lineHeight: 1.6 }}
+                  >
+                    Paytable (× bet, per line)
+                  </Typography>
+                  <Stack spacing={0.5} sx={{ mt: 1 }}>
+                    {Object.entries(SLOT_SYMBOLS)
+                      .sort((a, b) => a[1].multiplier - b[1].multiplier)
+                      .map(([key, s]) => (
+                        <Stack key={key} direction="row" justifyContent="space-between">
+                          <Typography>
+                            {emojiFor(key)} {emojiFor(key)} {emojiFor(key)}
+                          </Typography>
+                          <Typography color="text.secondary">×{s.multiplier}</Typography>
+                        </Stack>
+                      ))}
+                  </Stack>
+                </Box>
+              </Stack>
             </PageSection>
           </Grid>
         </Grid>

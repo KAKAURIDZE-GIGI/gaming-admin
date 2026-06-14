@@ -3,6 +3,7 @@
 // balance and writes a PlayHistory row.
 const Wheel = require("../models/Wheel");
 const Slot = require("../models/Slot");
+const User = require("../models/User");
 const PlayHistory = require("../models/PlayHistory");
 const slotEngine = require("../lib/slotEngine");
 
@@ -29,6 +30,15 @@ function err(res, status, message) {
   return res.status(status).json({ message });
 }
 
+/** Atomically apply a balance change; fails if balance would drop below the stake. */
+async function applyBalanceChange(userId, minBalance, netChange) {
+  return User.findOneAndUpdate(
+    { _id: userId, balance: { $gte: minBalance } },
+    { $inc: { balance: netChange } },
+    { new: true },
+  );
+}
+
 // POST /api/play/wheel/:id   { bet }
 async function playWheel(req, res) {
   const user = req.user;
@@ -39,13 +49,14 @@ async function playWheel(req, res) {
   }
 
   const bets = allowedBets(wheel, wheel.spinCost);
-  if (!bets.includes(bet)) return err(res, 400, "Invalid bet size");
-  if (user.balance < bet) return err(res, 400, "Insufficient balance");
+  if (!Number.isFinite(bet) || bet <= 0 || !bets.includes(bet)) {
+    return err(res, 400, "Invalid bet size");
+  }
 
   if (wheel.maxSpinsPerUser) {
     const spins = await PlayHistory.countDocuments({
-      userId: user.id,
-      gameId: wheel.id,
+      userId: user._id,
+      gameId: wheel._id,
       gameType: "wheel",
     });
     if (spins >= wheel.maxSpinsPerUser) {
@@ -61,17 +72,18 @@ async function playWheel(req, res) {
     : 0;
   const net = payout - bet;
 
-  user.balance += net;
-  await user.save();
+  const updatedUser = await applyBalanceChange(user._id, bet, net);
+  if (!updatedUser) return err(res, 400, "Insufficient balance");
+
   await PlayHistory.create({
-    userId: user.id,
+    userId: user._id,
     gameType: "wheel",
-    gameId: wheel.id,
+    gameId: wheel._id,
     gameName: wheel.name,
     bet,
     outcome: segment.label,
     amountWon: net,
-    balanceAfter: user.balance,
+    balanceAfter: updatedUser.balance,
   });
 
   res.json({
@@ -79,7 +91,7 @@ async function playWheel(req, res) {
     segment,
     payout,
     amountWon: net,
-    balance: user.balance,
+    balance: updatedUser.balance,
   });
 }
 
@@ -94,13 +106,14 @@ async function playSlot(req, res) {
   }
 
   const bets = allowedBets(slot, 10);
-  if (!bets.includes(bet)) return err(res, 400, "Invalid bet size");
+  if (!Number.isFinite(bet) || bet <= 0 || !bets.includes(bet)) {
+    return err(res, 400, "Invalid bet size");
+  }
   if (!slotEngine.ALLOWED_LINES.includes(lines)) {
     return err(res, 400, "Lines must be 1, 3 or 9");
   }
 
-  const stake = bet * lines; // bet per line
-  if (user.balance < stake) return err(res, 400, "Insufficient balance");
+  const stake = bet * lines;
 
   const { grid, winningLines, payout } = slotEngine.spin({
     winRate: slot.winRate,
@@ -109,19 +122,20 @@ async function playSlot(req, res) {
   });
   const net = payout - stake;
 
-  user.balance += net;
-  await user.save();
+  const updatedUser = await applyBalanceChange(user._id, stake, net);
+  if (!updatedUser) return err(res, 400, "Insufficient balance");
+
   await PlayHistory.create({
-    userId: user.id,
+    userId: user._id,
     gameType: "slot",
-    gameId: slot.id,
+    gameId: slot._id,
     gameName: slot.name,
     bet: stake,
     outcome: winningLines.length
       ? `${winningLines.length} line${winningLines.length > 1 ? "s" : ""} won`
       : "No win",
     amountWon: net,
-    balanceAfter: user.balance,
+    balanceAfter: updatedUser.balance,
   });
 
   res.json({
@@ -130,7 +144,7 @@ async function playSlot(req, res) {
     lines,
     payout,
     amountWon: net,
-    balance: user.balance,
+    balance: updatedUser.balance,
   });
 }
 

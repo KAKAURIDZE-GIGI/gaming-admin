@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link as RouterLink } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -31,31 +31,50 @@ export default function WheelPlay() {
   const [bet, setBet] = useState<number | null>(null);
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<WheelResult | null>(null);
+  const spinTimeoutRef = useRef<number | null>(null);
+  const pending = useRef<WheelResult | null>(null);
 
   const effectiveBet = bet ?? wheel?.betSizes[0] ?? null;
 
+  useEffect(() => {
+    return () => {
+      if (spinTimeoutRef.current != null) {
+        window.clearTimeout(spinTimeoutRef.current);
+      }
+      const res = pending.current;
+      if (res) setBalance(res.balance);
+    };
+  }, [setBalance]);
+
   const handleSpin = async () => {
-    if (!wheel || effectiveBet == null || spinning) return;
+    if (!wheel || effectiveBet == null || spinning || busy) return;
     if ((user?.balance ?? 0) < effectiveBet) {
       toast.error("Not enough coins for this bet");
       return;
     }
+    setBusy(true);
     setResult(null);
     try {
       const res = await playApi.wheel(wheel.id, effectiveBet);
+      pending.current = res;
       setSpinning(true);
       setRotation((cur) => rotationForIndex(wheel.segments, res.segmentIndex, cur));
-      window.setTimeout(() => {
+      spinTimeoutRef.current = window.setTimeout(() => {
+        spinTimeoutRef.current = null;
         setSpinning(false);
+        setBusy(false);
         setResult(res);
         setBalance(res.balance);
+        pending.current = null;
         queryClient.invalidateQueries({ queryKey: ["history"] });
-        if (res.amountWon > 0) toast.success(`You won ${res.amountWon} coins!`);
+        if (res.payout > 0) toast.success(`You won ${res.payout} coins!`);
         else toast(`${res.segment.label} — better luck next time`);
       }, SPIN_DURATION_MS);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Spin failed");
+      setBusy(false);
     }
   };
 
@@ -88,7 +107,7 @@ export default function WheelPlay() {
                 variant="contained"
                 size="large"
                 onClick={handleSpin}
-                disabled={spinning || effectiveBet == null}
+                disabled={spinning || busy || effectiveBet == null}
                 sx={{ mt: 3, minWidth: 180, fontSize: 18 }}
               >
                 {spinning ? "Spinning…" : `SPIN (${effectiveBet ?? "-"})`}
@@ -108,14 +127,18 @@ export default function WheelPlay() {
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 700 }}>
                 Place your bet
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 2, lineHeight: 1.6, wordBreak: "break-word" }}
+              >
                 {wheel.description}
               </Typography>
               <BetSelector
                 betSizes={wheel.betSizes}
                 value={effectiveBet}
                 onChange={setBet}
-                disabled={spinning}
+                disabled={spinning || busy}
               />
               <Stack spacing={1} sx={{ mt: 3 }}>
                 <Typography variant="overline" color="text.secondary">
