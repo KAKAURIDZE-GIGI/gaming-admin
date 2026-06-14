@@ -1,7 +1,8 @@
-import { Grid, Typography } from "@mui/material";
+import { Grid } from "@mui/material";
 import VideogameAssetIcon from "@mui/icons-material/VideogameAsset";
 import { ROUTES } from "@/shared/lib/routes";
 import { GameCard } from "@/shared/components/GameCard";
+import { PageHeader } from "@/shared/components/PageLayout";
 import { QueryState } from "@/shared/components/QueryState";
 import { useSlots } from "../hooks";
 
@@ -10,9 +11,10 @@ export default function SlotList() {
 
   return (
     <>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Slots
-      </Typography>
+      <PageHeader
+        title="Slots"
+        subtitle="Classic fruit reels with multiple paylines"
+      />
       <QueryState
         isLoading={isLoading}
         isError={isError}
@@ -28,7 +30,7 @@ export default function SlotList() {
               title={s.name}
               description={s.description}
               icon={<VideogameAssetIcon color="secondary" />}
-              chips={["🍒 Fruits", `Bets: ${s.betSizes.join(" / ")}`]}
+              chips={["Fruits", `Bets: ${s.betSizes.join(" / ")}`]}
             />
           </Grid>
         ))}

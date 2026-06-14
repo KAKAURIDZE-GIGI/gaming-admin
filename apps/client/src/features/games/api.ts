@@ -1,11 +1,5 @@
 import apiClient from "@/shared/api/axios";
-import type {
-  Leaderboard,
-  PlayRecord,
-  Raffle,
-  Slot,
-  Wheel,
-} from "@/shared/types";
+import type { PlayRecord, Slot, Wheel } from "@/shared/types";
 
 // ---- Read-only active game configs ----
 export const gamesApi = {
@@ -13,14 +7,6 @@ export const gamesApi = {
     (await apiClient.get("/games/wheels")).data.data,
   getWheel: async (id: string): Promise<Wheel> =>
     (await apiClient.get(`/games/wheels/${id}`)).data,
-  listRaffles: async (): Promise<Raffle[]> =>
-    (await apiClient.get("/games/raffles")).data.data,
-  getRaffle: async (id: string): Promise<Raffle> =>
-    (await apiClient.get(`/games/raffles/${id}`)).data,
-  listLeaderboards: async (): Promise<Leaderboard[]> =>
-    (await apiClient.get("/games/leaderboards")).data.data,
-  getLeaderboard: async (id: string): Promise<Leaderboard> =>
-    (await apiClient.get(`/games/leaderboards/${id}`)).data,
   listSlots: async (): Promise<Slot[]> =>
     (await apiClient.get("/games/slots")).data.data,
   getSlot: async (id: string): Promise<Slot> =>
@@ -35,20 +21,6 @@ export interface WheelResult {
   amountWon: number;
   balance: number;
 }
-export interface RaffleResult {
-  tickets: number;
-  totalTickets: number;
-  cost: number;
-  balance: number;
-}
-export interface LeaderboardResult {
-  points: number;
-  totalScore: number;
-  rank: number;
-  cashWon: number;
-  amountWon: number;
-  balance: number;
-}
 export interface SlotResult {
   grid: string[][]; // reel-major: grid[reel][row] = symbol key
   winningLines: number[];
@@ -57,32 +29,12 @@ export interface SlotResult {
   amountWon: number;
   balance: number;
 }
-export interface Standing {
-  id: string;
-  name: string;
-  score: number;
-}
-export interface StandingsResponse {
-  standings: Standing[];
-  myRank: number | null;
-  myScore: number;
-}
 
 export const playApi = {
   wheel: async (id: string, bet: number): Promise<WheelResult> =>
     (await apiClient.post(`/play/wheel/${id}`, { bet })).data,
-  raffle: async (
-    id: string,
-    bet: number,
-    quantity: number,
-  ): Promise<RaffleResult> =>
-    (await apiClient.post(`/play/raffle/${id}`, { bet, quantity })).data,
-  leaderboard: async (id: string, bet: number): Promise<LeaderboardResult> =>
-    (await apiClient.post(`/play/leaderboard/${id}`, { bet })).data,
   slot: async (id: string, bet: number, lines: number): Promise<SlotResult> =>
     (await apiClient.post(`/play/slot/${id}`, { bet, lines })).data,
-  standings: async (id: string): Promise<StandingsResponse> =>
-    (await apiClient.get(`/play/leaderboard/${id}/standings`)).data,
   history: async (
     page: number,
     limit: number,

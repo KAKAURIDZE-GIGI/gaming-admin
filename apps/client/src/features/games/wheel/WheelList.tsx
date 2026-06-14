@@ -1,7 +1,8 @@
-import { Grid, Typography } from "@mui/material";
+import { Grid } from "@mui/material";
 import CasinoIcon from "@mui/icons-material/Casino";
 import { ROUTES } from "@/shared/lib/routes";
 import { GameCard } from "@/shared/components/GameCard";
+import { PageHeader } from "@/shared/components/PageLayout";
 import { QueryState } from "@/shared/components/QueryState";
 import { useWheels } from "../hooks";
 
@@ -10,9 +11,10 @@ export default function WheelList() {
 
   return (
     <>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Wheels
-      </Typography>
+      <PageHeader
+        title="Wheels"
+        subtitle="Spin the wheel and win instant prizes"
+      />
       <QueryState
         isLoading={isLoading}
         isError={isError}

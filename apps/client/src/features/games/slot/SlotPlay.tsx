@@ -7,7 +7,6 @@ import {
   Box,
   Button,
   Grid,
-  Paper,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -17,6 +16,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { ROUTES } from "@/shared/lib/routes";
 import { formatSigned } from "@/shared/lib/format";
 import { BetSelector } from "@/shared/components/BetSelector";
+import { PageSection } from "@/shared/components/PageLayout";
 import { QueryState } from "@/shared/components/QueryState";
 import { useAuth } from "@/features/auth";
 import { useSlot } from "../hooks";
@@ -69,21 +69,26 @@ export default function SlotPlay() {
     setResult(res);
     setBalance(res.balance);
     queryClient.invalidateQueries({ queryKey: ["history"] });
-    if (res.amountWon > 0) toast.success(`You won ${res.amountWon} coins! 🎉`);
-    else toast(`No win this time`);
+    if (res.amountWon > 0) toast.success(`You won ${res.amountWon} coins!`);
+    else toast("No win this time");
   };
 
   return (
     <Box>
-      <Button component={RouterLink} to={ROUTES.SLOTS} startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>
+      <Button
+        component={RouterLink}
+        to={ROUTES.SLOTS}
+        startIcon={<ArrowBackIcon />}
+        sx={{ mb: 2 }}
+      >
         All slots
       </Button>
       <QueryState isLoading={isLoading} isError={isError} error={error} />
       {slot && (
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, md: 7 }}>
-            <Paper sx={{ p: 3, textAlign: "center" }}>
-              <Typography variant="h4" sx={{ mb: 2 }}>
+            <PageSection sx={{ textAlign: "center" }}>
+              <Typography variant="h4" sx={{ mb: 2, fontWeight: 800 }}>
                 {slot.name}
               </Typography>
               <SlotReels
@@ -113,11 +118,11 @@ export default function SlotPlay() {
                   {formatSigned(result.amountWon)} coins
                 </Alert>
               )}
-            </Paper>
+            </PageSection>
           </Grid>
 
           <Grid size={{ xs: 12, md: 5 }}>
-            <Paper sx={{ p: 3 }}>
+            <PageSection>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 {slot.description}
               </Typography>
@@ -139,10 +144,10 @@ export default function SlotPlay() {
                   value={lines}
                   onChange={(_, v) => v != null && setLines(v)}
                   disabled={spinning}
-                  sx={{ display: "block", mt: 0.5 }}
+                  sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 0.5 }}
                 >
                   {LINE_OPTIONS.map((n) => (
-                    <ToggleButton key={n} value={n} sx={{ px: 3 }}>
+                    <ToggleButton key={n} value={n} sx={{ px: 3, borderRadius: "999px !important" }}>
                       {n} line{n > 1 ? "s" : ""}
                     </ToggleButton>
                   ))}
@@ -171,7 +176,7 @@ export default function SlotPlay() {
                     ))}
                 </Stack>
               </Box>
-            </Paper>
+            </PageSection>
           </Grid>
         </Grid>
       )}

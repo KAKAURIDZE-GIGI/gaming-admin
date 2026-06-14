@@ -7,7 +7,6 @@ import {
   Box,
   Button,
   Grid,
-  Paper,
   Stack,
   Typography,
 } from "@mui/material";
@@ -15,6 +14,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { ROUTES } from "@/shared/lib/routes";
 import { formatSigned } from "@/shared/lib/format";
 import { BetSelector } from "@/shared/components/BetSelector";
+import { PageSection } from "@/shared/components/PageLayout";
 import { QueryState } from "@/shared/components/QueryState";
 import { useAuth } from "@/features/auth";
 import { useWheel } from "../hooks";
@@ -51,7 +51,7 @@ export default function WheelPlay() {
         setResult(res);
         setBalance(res.balance);
         queryClient.invalidateQueries({ queryKey: ["history"] });
-        if (res.amountWon > 0) toast.success(`You won ${res.amountWon} coins! 🎉`);
+        if (res.amountWon > 0) toast.success(`You won ${res.amountWon} coins!`);
         else toast(`${res.segment.label} — better luck next time`);
       }, SPIN_DURATION_MS);
     } catch (err) {
@@ -61,15 +61,20 @@ export default function WheelPlay() {
 
   return (
     <Box>
-      <Button component={RouterLink} to={ROUTES.WHEELS} startIcon={<ArrowBackIcon />} sx={{ mb: 2 }}>
+      <Button
+        component={RouterLink}
+        to={ROUTES.WHEELS}
+        startIcon={<ArrowBackIcon />}
+        sx={{ mb: 2 }}
+      >
         All wheels
       </Button>
       <QueryState isLoading={isLoading} isError={isError} error={error} />
       {wheel && (
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, md: 7 }}>
-            <Paper sx={{ p: 3, textAlign: "center" }}>
-              <Typography variant="h4" sx={{ mb: 2 }}>
+            <PageSection sx={{ textAlign: "center" }}>
+              <Typography variant="h4" sx={{ mb: 2, fontWeight: 800 }}>
                 {wheel.name}
               </Typography>
               <SpinWheel
@@ -96,11 +101,11 @@ export default function WheelPlay() {
                   {result.segment.label} · {formatSigned(result.amountWon)} coins
                 </Alert>
               )}
-            </Paper>
+            </PageSection>
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
+            <PageSection>
+              <Typography variant="h6" sx={{ mb: 1, fontWeight: 700 }}>
                 Place your bet
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -119,7 +124,17 @@ export default function WheelPlay() {
                 {wheel.segments.map((s) => (
                   <Stack key={s.id} direction="row" justifyContent="space-between">
                     <Typography variant="body2">
-                      <Box component="span" sx={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", bgcolor: s.color, mr: 1 }} />
+                      <Box
+                        component="span"
+                        sx={{
+                          display: "inline-block",
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          bgcolor: s.color,
+                          mr: 1,
+                        }}
+                      />
                       {s.label}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -128,7 +143,7 @@ export default function WheelPlay() {
                   </Stack>
                 ))}
               </Stack>
-            </Paper>
+            </PageSection>
           </Grid>
         </Grid>
       )}

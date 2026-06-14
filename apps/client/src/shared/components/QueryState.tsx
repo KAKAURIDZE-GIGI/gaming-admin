@@ -1,4 +1,5 @@
-import { Alert, Box, CircularProgress, Typography } from "@mui/material";
+import { Alert, Box, CircularProgress, Paper, Stack, Typography } from "@mui/material";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 
 /** Renders loading / error / empty states for a react-query result. */
 export function QueryState({
@@ -16,8 +17,8 @@ export function QueryState({
 }) {
   if (isLoading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
+      <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
+        <CircularProgress size={40} />
       </Box>
     );
   }
@@ -30,9 +31,22 @@ export function QueryState({
   }
   if (isEmpty) {
     return (
-      <Typography color="text.secondary" textAlign="center" sx={{ py: 8 }}>
-        {emptyText}
-      </Typography>
+      <Paper
+        elevation={0}
+        sx={{
+          py: 8,
+          px: 3,
+          textAlign: "center",
+          border: "1px dashed",
+          borderColor: "divider",
+          bgcolor: "background.paper",
+        }}
+      >
+        <Stack alignItems="center" spacing={1.5}>
+          <InboxOutlinedIcon sx={{ fontSize: 48, color: "text.disabled" }} />
+          <Typography color="text.secondary">{emptyText}</Typography>
+        </Stack>
+      </Paper>
     );
   }
   return null;

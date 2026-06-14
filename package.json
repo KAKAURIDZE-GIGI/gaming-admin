@@ -16,6 +16,10 @@
     "client:lint": "npm run lint --workspace client",
     "server": "npm start --workspace server",
     "seed": "npm run seed --workspace server",
-    "create-admin": "npm run create-admin --workspace server --"
+    "create-admin": "npm run create-admin --workspace server --",
+    "start:all": "concurrently \"npm run server\" \"npm run client\" \"npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
   }
 }

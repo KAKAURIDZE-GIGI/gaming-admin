@@ -6,14 +6,6 @@ import { ErrorBoundary, NotFound } from "@/shared/components";
 import { ROUTES } from "@/shared/lib";
 import { ProtectedRoute } from "@/features/auth";
 import Login from "@/features/auth/pages/Login";
-import LeaderboardList from "@/features/leaderboard/pages/LeaderboardList";
-import LeaderboardCreate from "@/features/leaderboard/pages/LeaderboardCreate";
-import LeaderboardEdit from "@/features/leaderboard/pages/LeaderboardEdit";
-import LeaderboardDetail from "@/features/leaderboard/pages/LeaderboardDetail";
-import RaffleList from "@/features/raffle/pages/RaffleList";
-import RaffleCreate from "@/features/raffle/pages/RaffleCreate";
-import RaffleDetail from "@/features/raffle/pages/RaffleDetail";
-import RaffleEdit from "@/features/raffle/pages/RaffleEdit";
 import WheelList from "@/features/wheel/pages/WheelList";
 import WheelCreate from "@/features/wheel/pages/WheelCreate";
 import WheelEdit from "@/features/wheel/pages/WheelEdit";
@@ -69,145 +61,76 @@ export const router = createBrowserRouter([
       {
         element: <MainLayout />,
         children: [
-      {
-        path: ROUTES.HOME,
-        element: <Navigate to={ROUTES.LEADERBOARD.LIST} replace />,
-      },
+          {
+            path: ROUTES.HOME,
+            element: <Navigate to={ROUTES.WHEEL.LIST} replace />,
+          },
 
-      // Leaderboard
-      {
-        path: ROUTES.LEADERBOARD.LIST,
-        element: (
-          <Wrap feature="Leaderboard">
-            <LeaderboardList />
-          </Wrap>
-        ),
-      },
-      {
-        path: ROUTES.LEADERBOARD.CREATE,
-        element: (
-          <Wrap feature="Leaderboard">
-            <LeaderboardCreate />
-          </Wrap>
-        ),
-      },
-      {
-        path: "/leaderboards/:id/edit",
-        element: (
-          <Wrap feature="Leaderboard">
-            <LeaderboardEdit />
-          </Wrap>
-        ),
-      },
-      {
-        path: "/leaderboards/:id",
-        element: (
-          <Wrap feature="Leaderboard">
-            <LeaderboardDetail />
-          </Wrap>
-        ),
-      },
+          {
+            path: ROUTES.WHEEL.LIST,
+            element: (
+              <Wrap feature="Wheel">
+                <WheelList />
+              </Wrap>
+            ),
+          },
+          {
+            path: ROUTES.WHEEL.CREATE,
+            element: (
+              <Wrap feature="Wheel">
+                <WheelCreate />
+              </Wrap>
+            ),
+          },
+          {
+            path: "/wheels/:id/edit",
+            element: (
+              <Wrap feature="Wheel">
+                <WheelEdit />
+              </Wrap>
+            ),
+          },
+          {
+            path: "/wheels/:id",
+            element: (
+              <Wrap feature="Wheel">
+                <WheelDetail />
+              </Wrap>
+            ),
+          },
 
-      // Raffle
-      {
-        path: ROUTES.RAFFLE.LIST,
-        element: (
-          <Wrap feature="Raffle">
-            <RaffleList />
-          </Wrap>
-        ),
-      },
-      {
-        path: ROUTES.RAFFLE.CREATE,
-        element: (
-          <Wrap feature="Raffle">
-            <RaffleCreate />
-          </Wrap>
-        ),
-      },
-      {
-        path: "/raffles/:id/edit",
-        element: (
-          <Wrap feature="Raffle">
-            <RaffleEdit />
-          </Wrap>
-        ),
-      },
-      {
-        path: "/raffles/:id",
-        element: (
-          <Wrap feature="Raffle">
-            <RaffleDetail />
-          </Wrap>
-        ),
-      },
-
-      {
-        path: ROUTES.WHEEL.LIST,
-        element: (
-          <Wrap feature="Wheel">
-            <WheelList />
-          </Wrap>
-        ),
-      },
-      {
-        path: ROUTES.WHEEL.CREATE,
-        element: (
-          <Wrap feature="Wheel">
-            <WheelCreate />
-          </Wrap>
-        ),
-      },
-      {
-        path: "/wheels/:id/edit",
-        element: (
-          <Wrap feature="Wheel">
-            <WheelEdit />
-          </Wrap>
-        ),
-      },
-      {
-        path: "/wheels/:id",
-        element: (
-          <Wrap feature="Wheel">
-            <WheelDetail />
-          </Wrap>
-        ),
-      },
-
-      // Slot
-      {
-        path: ROUTES.SLOT.LIST,
-        element: (
-          <Wrap feature="Slot">
-            <SlotList />
-          </Wrap>
-        ),
-      },
-      {
-        path: ROUTES.SLOT.CREATE,
-        element: (
-          <Wrap feature="Slot">
-            <SlotCreate />
-          </Wrap>
-        ),
-      },
-      {
-        path: "/slots/:id/edit",
-        element: (
-          <Wrap feature="Slot">
-            <SlotEdit />
-          </Wrap>
-        ),
-      },
-      {
-        path: "/slots/:id",
-        element: (
-          <Wrap feature="Slot">
-            <SlotDetail />
-          </Wrap>
-        ),
-      },
+          {
+            path: ROUTES.SLOT.LIST,
+            element: (
+              <Wrap feature="Slot">
+                <SlotList />
+              </Wrap>
+            ),
+          },
+          {
+            path: ROUTES.SLOT.CREATE,
+            element: (
+              <Wrap feature="Slot">
+                <SlotCreate />
+              </Wrap>
+            ),
+          },
+          {
+            path: "/slots/:id/edit",
+            element: (
+              <Wrap feature="Slot">
+                <SlotEdit />
+              </Wrap>
+            ),
+          },
+          {
+            path: "/slots/:id",
+            element: (
+              <Wrap feature="Slot">
+                <SlotDetail />
+              </Wrap>
+            ),
+          },
 
           { path: "*", element: <NotFound /> },
         ],

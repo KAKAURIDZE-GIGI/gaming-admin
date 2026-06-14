@@ -1,4 +1,4 @@
-// Generic CRUD controller factory shared by leaderboards, raffles, wheels.
+// Generic CRUD controller factory shared by wheels, slots, and other admin resources.
 // `label` is used in 404 messages; `arrayFields` are nested arrays (prizes /
 // segments) whose incoming `id` must be mapped back to `_id` so subdocument
 // ids stay stable across updates.
