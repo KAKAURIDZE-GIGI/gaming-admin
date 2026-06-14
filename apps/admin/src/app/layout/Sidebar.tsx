@@ -16,8 +16,10 @@ import RaffleIcon from "@mui/icons-material/ConfirmationNumber";
 import WheelIcon from "@mui/icons-material/Casino";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import LogoutIcon from "@mui/icons-material/Logout";
 import { ROUTES } from "@/shared/lib";
 import { useThemeMode } from "@/app/providers/useThemeMode";
+import { useAuth } from "@/features/auth";
 
 const DRAWER_WIDTH = 260;
 
@@ -35,6 +37,7 @@ export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { mode, toggleMode } = useThemeMode();
+  const { admin, logout } = useAuth();
 
   return (
     <Drawer
@@ -48,6 +51,8 @@ export function Sidebar() {
           borderRight: "1px solid",
           borderColor: "divider",
           bgcolor: "background.paper",
+          display: "flex",
+          flexDirection: "column",
         },
       }}
     >
@@ -114,6 +119,35 @@ export function Sidebar() {
           );
         })}
       </List>
+
+      <Box sx={{ flexGrow: 1 }} />
+      <Divider />
+      <Box sx={{ p: 1.5 }}>
+        {admin && (
+          <Box sx={{ px: 1, pb: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+              {admin.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {admin.email}
+            </Typography>
+          </Box>
+        )}
+        <ListItemButton
+          onClick={logout}
+          sx={{
+            borderRadius: 2,
+            color: "error.main",
+            "& .MuiListItemIcon-root": { color: "error.main" },
+            "&:hover": { bgcolor: "action.hover" },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 40 }}>
+            <LogoutIcon />
+          </ListItemIcon>
+          <ListItemText primary="Logout" />
+        </ListItemButton>
+      </Box>
     </Drawer>
   );
 }

@@ -2,6 +2,7 @@ import { RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "./ThemeContext";
+import { AuthProvider } from "@/features/auth";
 import { router } from "@/app/routes/AppRoutes";
 
 const queryClient = new QueryClient({
@@ -18,7 +19,9 @@ export function AppProviders() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <RouterProvider router={router} />
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
         <Toaster
           position="top-right"
           toastOptions={{

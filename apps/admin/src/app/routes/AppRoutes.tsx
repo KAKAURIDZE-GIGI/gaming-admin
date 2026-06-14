@@ -4,6 +4,8 @@ import { CircularProgress, Box } from "@mui/material";
 import { MainLayout } from "@/app/layout";
 import { ErrorBoundary, NotFound } from "@/shared/components";
 import { ROUTES } from "@/shared/lib";
+import { ProtectedRoute } from "@/features/auth";
+import Login from "@/features/auth/pages/Login";
 import LeaderboardList from "@/features/leaderboard/pages/LeaderboardList";
 import LeaderboardCreate from "@/features/leaderboard/pages/LeaderboardCreate";
 import LeaderboardEdit from "@/features/leaderboard/pages/LeaderboardEdit";
@@ -50,8 +52,19 @@ function Wrap({
 
 export const router = createBrowserRouter([
   {
-    element: <MainLayout />,
+    path: ROUTES.LOGIN,
+    element: (
+      <Wrap feature="Login">
+        <Login />
+      </Wrap>
+    ),
+  },
+  {
+    element: <ProtectedRoute />,
     children: [
+      {
+        element: <MainLayout />,
+        children: [
       {
         path: ROUTES.HOME,
         element: <Navigate to={ROUTES.LEADERBOARD.LIST} replace />,
@@ -158,7 +171,9 @@ export const router = createBrowserRouter([
         ),
       },
 
-      { path: "*", element: <NotFound /> },
+          { path: "*", element: <NotFound /> },
+        ],
+      },
     ],
   },
 ]);

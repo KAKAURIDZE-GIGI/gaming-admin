@@ -14,10 +14,51 @@ Each feature owns its entire vertical slice — types, validation schemas, API l
 
 ### Folder Structure
 
+The repository is an **npm workspaces monorepo**. Both apps live under `apps/` and
+share a single root `node_modules` and lockfile.
+
 ```
-gaming-admin/
-├── server/
-│   └── index.js                    # Express API server with in-memory database
+gaming-admin/                  # npm workspaces monorepo (root)
+├── package.json               # Workspaces config + delegating scripts
+├── package-lock.json          # Single lockfile for both apps
+├── apps/
+│   ├── admin/                 # React + TypeScript frontend (Vite)  — see below
+│   └── server/                # Express + MongoDB REST API          — see below
+└── README.md
+```
+
+**`apps/server/`** — Express + MongoDB REST API
+
+```
+apps/server/
+├── config/
+│   └── db.js                    # Mongoose connection
+├── models/                      # Mongoose schemas
+│   ├── Leaderboard.js
+│   ├── Raffle.js
+│   ├── Wheel.js
+│   ├── Admin.js                 # Admin user (bcrypt-hashed password)
+│   └── _transform.js            # Shared toJSON: exposes `id`, hides `_id`/`__v`
+├── controllers/
+│   ├── crudController.js        # Generic CRUD factory (shared by all resources)
+│   └── authController.js        # login + me
+├── middleware/
+│   └── auth.js                  # protect: JWT verification
+├── routes/
+│   ├── resource.js              # REST router factory
+│   └── auth.js                  # /api/auth routes
+├── scripts/
+│   └── createAdmin.js           # CLI to add/update an admin user
+├── seed.js                      # Seed collections + default admin
+├── .env                         # MONGO_URI, JWT_SECRET (gitignored)
+├── .env.example                 # Env template
+└── index.js                     # App entry: connect DB, mount routes
+```
+
+**`apps/admin/`** — React + TypeScript frontend
+
+```
+apps/admin/
 ├── src/
 │   ├── app/                         # Application shell
 │   │   ├── layout/
@@ -109,7 +150,7 @@ gaming-admin/
 | --------------- | ------------------------ | ------- | ------------------------------------------------------------ |
 | Framework       | React + TypeScript       | 19.x    | UI framework with static typing                              |
 | Build Tool      | Vite                     | 8.x     | Dev server with HMR, proxy, path aliases                     |
-| Routing         | React Router             | 7.x     | Data router (`createBrowserRouter`) for `useBlocker` support |
+| Routing         | React Router             | 6.x     | Data router (`createBrowserRouter`) for `useBlocker` support |
 | UI Library      | Material UI (MUI)        | 7.x     | Component library with `sx` prop styling                     |
 | Server State    | TanStack React Query     | 5.x     | Data fetching, caching, mutations                            |
 | Form Management | React Hook Form          | 7.x     | Performant form state, field arrays                          |
@@ -118,7 +159,9 @@ gaming-admin/
 | Notifications   | react-hot-toast          | 2.x     | Toast notifications for mutations                            |
 | Drag & Drop     | @dnd-kit                 | 6.x     | Sortable lists for prizes and wheel segments                 |
 | Testing         | Vitest + Testing Library | 3.x     | Unit tests for schemas and utilities                         |
-| Backend         | Express.js               | 4.x     | REST API with in-memory data store                           |
+| Backend         | Express.js               | 5.x     | REST API server                                              |
+| Database        | MongoDB + Mongoose       | 9.x     | Persistent document store with schema models                 |
+| Auth            | JWT + bcryptjs           | —       | Email/password login, hashed passwords, Bearer-token auth    |
 
 ---
 
@@ -128,6 +171,7 @@ gaming-admin/
 
 - Node.js 20+
 - npm 9+
+- A MongoDB database (MongoDB Atlas or a local instance)
 
 ### Setup
 
@@ -136,42 +180,75 @@ gaming-admin/
 git clone <repo-url>
 cd gaming-admin
 
-# 2. Install frontend dependencies
+# 2. Install all dependencies (one install covers both workspaces)
 npm install
 
-# 3. Install backend dependencies
-cd server
-npm install
-cd ..
+# 3. Configure environment variables
+cp apps/server/.env.example apps/server/.env
+# then edit apps/server/.env and set MONGO_URI and JWT_SECRET
 
-# 4. Start both servers (use two terminals)
+# 4. Seed the database (loads sample data + a default admin user)
+npm run seed
+
+# 5. Start both apps (use two terminals)
 
 # Terminal 1 — Frontend (port 3000)
 npm run dev
 
 # Terminal 2 — Backend (port 5000)
-cd server
-node index.js
+npm run server
 ```
+
+> All commands run from the repository root. `npm install` installs both workspaces
+> (`apps/admin` and `apps/server`) into a single hoisted `node_modules`.
 
 Open **http://localhost:3000** — the app should be running with seed data for all three features.
 
 > The Vite dev server proxies `/api` requests to `http://localhost:5000`, so the frontend and backend communicate seamlessly during development.
 
+### Environment Variables (`apps/server/.env`)
+
+| Variable         | Description                                  | Example                              |
+| ---------------- | -------------------------------------------- | ------------------------------------ |
+| `MONGO_URI`      | MongoDB connection string                    | `mongodb+srv://user:pass@cluster...` |
+| `JWT_SECRET`     | Secret used to sign JWT tokens               | `a-long-random-string`               |
+| `JWT_EXPIRES_IN` | Token lifetime                               | `7d`                                 |
+| `PORT`           | API server port                              | `5000`                               |
+
+> `apps/server/.env` is gitignored. Never commit real credentials — use `.env.example` as the committed template.
+
+### Admin Users
+
+The seed script creates a default admin: **`admin@gaming.com` / `admin123`**.
+
+Add or update an admin from the repository root:
+
+```bash
+npm run create-admin -- <email> <password> [name] [role]
+# e.g. npm run create-admin -- boss@gaming.com pass123 "Big Boss" superadmin
+```
+
+`role` is `admin` (default) or `superadmin`. Re-running with an existing email updates that user's password, name, and role.
+
 ---
 
 ## Available Scripts
 
-| Script             | Command                | Description                         |
-| ------------------ | ---------------------- | ----------------------------------- |
-| `npm run dev`      | `vite`                 | Start Vite dev server on port 3000  |
-| `npm run build`    | `tsc -b && vite build` | Type-check and build for production |
-| `npm run preview`  | `vite preview`         | Preview production build locally    |
-| `npm run lint`     | `eslint .`             | Lint all source files               |
-| `npm test`         | `vitest`               | Run unit tests in watch mode        |
-| `npm run test:run` | `vitest run`           | Run unit tests once                 |
+All scripts run from the **repository root** and delegate to the right workspace.
 
-Backend: `cd server && node index.js` starts the Express API on port 5000.
+| Script                 | Workspace | Description                          |
+| ---------------------- | --------- | ------------------------------------ |
+| `npm run dev`          | admin     | Start Vite dev server on port 3000   |
+| `npm run build`        | admin     | Type-check and build for production   |
+| `npm run lint`         | admin     | Lint all source files                 |
+| `npm test`             | admin     | Run unit tests in watch mode          |
+| `npm run test:run`     | admin     | Run unit tests once                   |
+| `npm run server`       | server    | Start the Express API on port 5000    |
+| `npm run seed`         | server    | Reset collections + seed sample data  |
+| `npm run create-admin` | server    | Add or update an admin user           |
+
+Workspace-scoped commands also work directly, e.g. `npm run lint --workspace admin`
+or running any script from inside `apps/admin` / `apps/server`.
 
 ---
 
@@ -180,6 +257,22 @@ Backend: `cd server && node index.js` starts the Express API on port 5000.
 Base URL: `http://localhost:5000/api` (proxied via Vite at `/api`)
 
 All list endpoints support query parameters: `page`, `limit`, `sortBy`, `order`, `status`.
+
+### Auth
+
+| Method | Endpoint          | Description                   | Request Body          |
+| ------ | ----------------- | ----------------------------- | --------------------- |
+| POST   | `/api/auth/login` | Log in, returns JWT + admin   | `{ email, password }` |
+| GET    | `/api/auth/me`    | Current admin (requires auth) | —                     |
+
+`POST /api/auth/login` responds with `{ token, admin }`. Send the token on protected
+requests via the `Authorization: Bearer <token>` header. Admin passwords are hashed
+with bcrypt and never returned in responses. There is no public registration endpoint —
+admins are created with the `create-admin` script.
+
+> The `protect` middleware (`middleware/auth.js`) is implemented and ready to guard the
+> resource routes; it is mounted on `/api/auth/me` and can be applied to the resource
+> routers once the frontend login flow is in place.
 
 ### Leaderboards
 
