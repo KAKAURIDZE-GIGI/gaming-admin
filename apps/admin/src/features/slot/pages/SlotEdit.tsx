@@ -11,9 +11,12 @@ export default function SlotEdit() {
   const { data, isLoading, isError } = useSlotDetail(id!);
   const updateMutation = useUpdateSlot(id!);
 
-  const handleSubmit = (formData: SlotSchemaType) => {
+  const handleSubmit = (formData: SlotSchemaType, markClean: () => void) => {
     updateMutation.mutate(formData, {
-      onSuccess: () => navigate(ROUTES.SLOT.DETAIL(id!)),
+      onSuccess: () => {
+        markClean();
+        navigate(ROUTES.SLOT.DETAIL(id!));
+      },
     });
   };
 

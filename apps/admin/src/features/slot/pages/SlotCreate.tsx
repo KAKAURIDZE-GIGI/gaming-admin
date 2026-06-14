@@ -9,9 +9,12 @@ export default function SlotCreate() {
   const navigate = useNavigate();
   const createMutation = useCreateSlot();
 
-  const handleSubmit = (data: SlotSchemaType) => {
+  const handleSubmit = (data: SlotSchemaType, markClean: () => void) => {
     createMutation.mutate(data, {
-      onSuccess: () => navigate(ROUTES.SLOT.LIST),
+      onSuccess: () => {
+        markClean();
+        navigate(ROUTES.SLOT.LIST);
+      },
     });
   };
 

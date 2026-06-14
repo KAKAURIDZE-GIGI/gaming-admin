@@ -11,9 +11,12 @@ export default function WheelEdit() {
   const { data, isLoading, isError } = useWheelDetail(id!);
   const updateMutation = useUpdateWheel(id!);
 
-  const handleSubmit = (formData: WheelSchemaType) => {
+  const handleSubmit = (formData: WheelSchemaType, markClean: () => void) => {
     updateMutation.mutate(formData, {
-      onSuccess: () => navigate(ROUTES.WHEEL.DETAIL(id!)),
+      onSuccess: () => {
+        markClean();
+        navigate(ROUTES.WHEEL.DETAIL(id!));
+      },
     });
   };
 

@@ -9,9 +9,12 @@ export default function WheelCreate() {
   const navigate = useNavigate();
   const createMutation = useCreateWheel();
 
-  const handleSubmit = (data: WheelSchemaType) => {
+  const handleSubmit = (data: WheelSchemaType, markClean: () => void) => {
     createMutation.mutate(data, {
-      onSuccess: () => navigate(ROUTES.WHEEL.LIST),
+      onSuccess: () => {
+        markClean();
+        navigate(ROUTES.WHEEL.LIST);
+      },
     });
   };
 

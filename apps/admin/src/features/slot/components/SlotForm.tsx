@@ -18,7 +18,7 @@ import type { Control, FieldValues } from "react-hook-form";
 
 interface SlotFormProps {
   defaultValues?: SlotSchemaType;
-  onSubmit: (data: SlotSchemaType) => void;
+  onSubmit: (data: SlotSchemaType, markClean: () => void) => void;
   isSubmitting: boolean;
   mode: "create" | "edit";
 }
@@ -41,16 +41,26 @@ export function SlotForm({
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors, isDirty },
   } = useForm<SlotSchemaType>({
     resolver: zodResolver(slotSchema),
     defaultValues: defaultValues || EMPTY_DEFAULTS,
   });
 
-  useUnsavedChanges(isDirty);
+  const { markSaved } = useUnsavedChanges(isDirty);
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+    <Box
+      component="form"
+      onSubmit={handleSubmit((data) =>
+        onSubmit(data, () => {
+          markSaved();
+          reset(data);
+        }),
+      )}
+      noValidate
+    >
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
           Slot Configuration
