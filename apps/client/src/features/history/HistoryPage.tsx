@@ -14,13 +14,12 @@ import {
   Typography,
 } from "@mui/material";
 import { formatCoins, formatSigned } from "@/shared/lib/format";
+import { PageHeader } from "@/shared/components/PageLayout";
 import { QueryState } from "@/shared/components/QueryState";
 import { playApi } from "@/features/games/api";
 
 const GAME_COLORS = {
   wheel: "secondary",
-  raffle: "primary",
-  leaderboard: "success",
   slot: "warning",
 } as const;
 
@@ -35,28 +34,35 @@ export default function HistoryPage() {
 
   return (
     <Box>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Play history
-      </Typography>
+      <PageHeader
+        title="Play history"
+        subtitle="Track your bets, outcomes, and balance changes"
+      />
       <QueryState
         isLoading={isLoading}
         isError={isError}
         error={error}
         isEmpty={!!data && data.total === 0}
-        emptyText="You haven't played anything yet."
+        emptyText="You haven't played anything yet. Head to the lobby to get started!"
       />
       {data && data.total > 0 && (
-        <Paper>
-          <TableContainer>
-            <Table>
+        <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider" }}>
+          <TableContainer sx={{ overflowX: "auto" }}>
+            <Table size="small">
               <TableHead>
                 <TableRow>
                   <TableCell>Game</TableCell>
-                  <TableCell>Outcome</TableCell>
+                  <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                    Outcome
+                  </TableCell>
                   <TableCell align="right">Bet</TableCell>
                   <TableCell align="right">Result</TableCell>
-                  <TableCell align="right">Balance</TableCell>
-                  <TableCell align="right">When</TableCell>
+                  <TableCell align="right" sx={{ display: { xs: "none", md: "table-cell" } }}>
+                    Balance
+                  </TableCell>
+                  <TableCell align="right" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                    When
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -68,22 +74,34 @@ export default function HistoryPage() {
                         label={h.gameType}
                         color={GAME_COLORS[h.gameType]}
                         variant="outlined"
-                      />{" "}
-                      {h.gameName}
+                        sx={{ mr: 1, textTransform: "capitalize" }}
+                      />
+                      <Typography component="span" variant="body2">
+                        {h.gameName}
+                      </Typography>
                     </TableCell>
-                    <TableCell>{h.outcome}</TableCell>
+                    <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                      {h.outcome}
+                    </TableCell>
                     <TableCell align="right">{formatCoins(h.bet)}</TableCell>
                     <TableCell
                       align="right"
                       sx={{
                         fontWeight: 700,
-                        color: h.amountWon > 0 ? "success.main" : h.amountWon < 0 ? "error.main" : "text.secondary",
+                        color:
+                          h.amountWon > 0
+                            ? "success.main"
+                            : h.amountWon < 0
+                              ? "error.main"
+                              : "text.secondary",
                       }}
                     >
                       {formatSigned(h.amountWon)}
                     </TableCell>
-                    <TableCell align="right">{formatCoins(h.balanceAfter)}</TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ display: { xs: "none", md: "table-cell" } }}>
+                      {formatCoins(h.balanceAfter)}
+                    </TableCell>
+                    <TableCell align="right" sx={{ display: { xs: "none", sm: "table-cell" } }}>
                       {new Date(h.createdAt).toLocaleString()}
                     </TableCell>
                   </TableRow>

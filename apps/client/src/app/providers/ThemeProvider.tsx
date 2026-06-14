@@ -23,8 +23,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       createTheme({
         palette: {
           mode,
-          primary: { main: "#7c3aed" }, // violet
-          secondary: { main: "#f59e0b" }, // gold
+          primary: { main: "#7c3aed" },
+          secondary: { main: "#f59e0b" },
           success: { main: "#22c55e" },
           error: { main: "#ef4444" },
           background:
@@ -32,12 +32,56 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
               ? { default: "#0f0b1e", paper: "#1a1330" }
               : { default: "#f5f3ff", paper: "#ffffff" },
         },
-        shape: { borderRadius: 14 },
+        shape: { borderRadius: 12 },
         typography: {
-          fontFamily: "Inter, system-ui, Arial, sans-serif",
-          h3: { fontWeight: 800 },
-          h4: { fontWeight: 800 },
+          fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Arial, sans-serif",
+          h3: { fontWeight: 800, letterSpacing: -0.5 },
+          h4: { fontWeight: 800, letterSpacing: -0.5 },
+          h5: { fontWeight: 700 },
+          h6: { fontWeight: 700 },
           button: { textTransform: "none", fontWeight: 700 },
+        },
+        components: {
+          MuiButton: {
+            defaultProps: { disableElevation: true },
+            styleOverrides: {
+              root: { borderRadius: 10 },
+            },
+          },
+          MuiChip: {
+            styleOverrides: {
+              root: { fontWeight: 600 },
+            },
+          },
+          MuiPaper: {
+            defaultProps: { elevation: 0 },
+          },
+          MuiToggleButtonGroup: {
+            styleOverrides: {
+              root: {
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+              },
+              grouped: {
+                margin: 0,
+                border: "1px solid",
+                borderRadius: "999px !important",
+                "&:not(:first-of-type)": {
+                  marginLeft: 0,
+                  borderLeft: "1px solid",
+                },
+              },
+            },
+          },
+          MuiToggleButton: {
+            styleOverrides: {
+              root: {
+                textTransform: "none",
+                fontWeight: 700,
+              },
+            },
+          },
         },
       }),
     [mode],

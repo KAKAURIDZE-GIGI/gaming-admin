@@ -2,12 +2,9 @@
 // it only renders what these handlers return. Every play mutates the player's
 // balance and writes a PlayHistory row.
 const Wheel = require("../models/Wheel");
-const Raffle = require("../models/Raffle");
-const Leaderboard = require("../models/Leaderboard");
 const Slot = require("../models/Slot");
+const User = require("../models/User");
 const PlayHistory = require("../models/PlayHistory");
-const RaffleTicket = require("../models/RaffleTicket");
-const LeaderboardEntry = require("../models/LeaderboardEntry");
 const slotEngine = require("../lib/slotEngine");
 
 const MONETARY = new Set(["coins", "bonus"]); // prize types that pay cash
@@ -33,6 +30,15 @@ function err(res, status, message) {
   return res.status(status).json({ message });
 }
 
+/** Atomically apply a balance change; fails if balance would drop below the stake. */
+async function applyBalanceChange(userId, minBalance, netChange) {
+  return User.findOneAndUpdate(
+    { _id: userId, balance: { $gte: minBalance } },
+    { $inc: { balance: netChange } },
+    { new: true },
+  );
+}
+
 // POST /api/play/wheel/:id   { bet }
 async function playWheel(req, res) {
   const user = req.user;
@@ -43,13 +49,14 @@ async function playWheel(req, res) {
   }
 
   const bets = allowedBets(wheel, wheel.spinCost);
-  if (!bets.includes(bet)) return err(res, 400, "Invalid bet size");
-  if (user.balance < bet) return err(res, 400, "Insufficient balance");
+  if (!Number.isFinite(bet) || bet <= 0 || !bets.includes(bet)) {
+    return err(res, 400, "Invalid bet size");
+  }
 
   if (wheel.maxSpinsPerUser) {
     const spins = await PlayHistory.countDocuments({
-      userId: user.id,
-      gameId: wheel.id,
+      userId: user._id,
+      gameId: wheel._id,
       gameType: "wheel",
     });
     if (spins >= wheel.maxSpinsPerUser) {
@@ -65,17 +72,18 @@ async function playWheel(req, res) {
     : 0;
   const net = payout - bet;
 
-  user.balance += net;
-  await user.save();
+  const updatedUser = await applyBalanceChange(user._id, bet, net);
+  if (!updatedUser) return err(res, 400, "Insufficient balance");
+
   await PlayHistory.create({
-    userId: user.id,
+    userId: user._id,
     gameType: "wheel",
-    gameId: wheel.id,
+    gameId: wheel._id,
     gameName: wheel.name,
     bet,
     outcome: segment.label,
     amountWon: net,
-    balanceAfter: user.balance,
+    balanceAfter: updatedUser.balance,
   });
 
   res.json({
@@ -83,123 +91,7 @@ async function playWheel(req, res) {
     segment,
     payout,
     amountWon: net,
-    balance: user.balance,
-  });
-}
-
-// POST /api/play/raffle/:id   { bet, quantity }
-async function playRaffle(req, res) {
-  const user = req.user;
-  const bet = Number(req.body.bet);
-  const quantity = Math.max(1, Math.floor(Number(req.body.quantity) || 1));
-  const raffle = await Raffle.findById(req.params.id).catch(() => null);
-  if (!raffle || raffle.status !== "active") {
-    return err(res, 404, "Raffle not available");
-  }
-
-  const bets = allowedBets(raffle, raffle.ticketPrice);
-  if (!bets.includes(bet)) return err(res, 400, "Invalid bet size");
-
-  const cost = bet * quantity;
-  if (user.balance < cost) return err(res, 400, "Insufficient balance");
-
-  // Enforce per-user and global ticket limits.
-  const mine = await RaffleTicket.aggregate([
-    { $match: { userId: user._id, raffleId: raffle._id } },
-    { $group: { _id: null, qty: { $sum: "$quantity" } } },
-  ]);
-  const myQty = mine[0]?.qty || 0;
-  if (raffle.maxTicketsPerUser && myQty + quantity > raffle.maxTicketsPerUser) {
-    return err(res, 403, `Max ${raffle.maxTicketsPerUser} tickets per user`);
-  }
-  if (raffle.totalTicketLimit) {
-    const all = await RaffleTicket.aggregate([
-      { $match: { raffleId: raffle._id } },
-      { $group: { _id: null, qty: { $sum: "$quantity" } } },
-    ]);
-    if ((all[0]?.qty || 0) + quantity > raffle.totalTicketLimit) {
-      return err(res, 403, "Raffle is sold out");
-    }
-  }
-
-  user.balance -= cost;
-  await user.save();
-  await RaffleTicket.create({
-    userId: user.id,
-    raffleId: raffle.id,
-    quantity,
-    bet,
-  });
-  await PlayHistory.create({
-    userId: user.id,
-    gameType: "raffle",
-    gameId: raffle.id,
-    gameName: raffle.name,
-    bet,
-    outcome: `${quantity} ticket${quantity > 1 ? "s" : ""}`,
-    amountWon: -cost,
-    balanceAfter: user.balance,
-  });
-
-  res.json({
-    tickets: quantity,
-    totalTickets: myQty + quantity,
-    cost,
-    balance: user.balance,
-  });
-}
-
-// POST /api/play/leaderboard/:id   { bet }
-async function playLeaderboard(req, res) {
-  const user = req.user;
-  const bet = Number(req.body.bet);
-  const board = await Leaderboard.findById(req.params.id).catch(() => null);
-  if (!board || board.status !== "active") {
-    return err(res, 404, "Leaderboard not available");
-  }
-
-  const bets = allowedBets(board, 10);
-  if (!bets.includes(bet)) return err(res, 400, "Invalid bet size");
-  if (user.balance < bet) return err(res, 400, "Insufficient balance");
-
-  // Server RNG: points earned scale with the stake; a chance to win cash too.
-  const points = Math.floor(bet * (0.5 + Math.random() * 2.5));
-  const cashWon =
-    Math.random() < 0.4 ? Math.floor(bet * (1 + Math.random() * 2)) : 0;
-  const net = cashWon - bet;
-
-  user.balance += net;
-  await user.save();
-
-  const entry = await LeaderboardEntry.findOneAndUpdate(
-    { userId: user._id, leaderboardId: board._id },
-    { $inc: { score: points }, $setOnInsert: { name: user.name } },
-    { new: true, upsert: true },
-  );
-  const rank =
-    (await LeaderboardEntry.countDocuments({
-      leaderboardId: board._id,
-      score: { $gt: entry.score },
-    })) + 1;
-
-  await PlayHistory.create({
-    userId: user.id,
-    gameType: "leaderboard",
-    gameId: board.id,
-    gameName: board.title,
-    bet,
-    outcome: `+${points} pts`,
-    amountWon: net,
-    balanceAfter: user.balance,
-  });
-
-  res.json({
-    points,
-    totalScore: entry.score,
-    rank,
-    cashWon,
-    amountWon: net,
-    balance: user.balance,
+    balance: updatedUser.balance,
   });
 }
 
@@ -214,13 +106,14 @@ async function playSlot(req, res) {
   }
 
   const bets = allowedBets(slot, 10);
-  if (!bets.includes(bet)) return err(res, 400, "Invalid bet size");
+  if (!Number.isFinite(bet) || bet <= 0 || !bets.includes(bet)) {
+    return err(res, 400, "Invalid bet size");
+  }
   if (!slotEngine.ALLOWED_LINES.includes(lines)) {
     return err(res, 400, "Lines must be 1, 3 or 9");
   }
 
-  const stake = bet * lines; // bet per line
-  if (user.balance < stake) return err(res, 400, "Insufficient balance");
+  const stake = bet * lines;
 
   const { grid, winningLines, payout } = slotEngine.spin({
     winRate: slot.winRate,
@@ -229,19 +122,20 @@ async function playSlot(req, res) {
   });
   const net = payout - stake;
 
-  user.balance += net;
-  await user.save();
+  const updatedUser = await applyBalanceChange(user._id, stake, net);
+  if (!updatedUser) return err(res, 400, "Insufficient balance");
+
   await PlayHistory.create({
-    userId: user.id,
+    userId: user._id,
     gameType: "slot",
-    gameId: slot.id,
+    gameId: slot._id,
     gameName: slot.name,
     bet: stake,
     outcome: winningLines.length
       ? `${winningLines.length} line${winningLines.length > 1 ? "s" : ""} won`
       : "No win",
     amountWon: net,
-    balanceAfter: user.balance,
+    balanceAfter: updatedUser.balance,
   });
 
   res.json({
@@ -250,7 +144,7 @@ async function playSlot(req, res) {
     lines,
     payout,
     amountWon: net,
-    balance: user.balance,
+    balance: updatedUser.balance,
   });
 }
 
@@ -269,32 +163,8 @@ async function history(req, res) {
   res.json({ data, total, page, limit });
 }
 
-// GET /api/play/leaderboard/:id/standings
-async function standings(req, res) {
-  const leaderboardId = req.params.id;
-  const top = await LeaderboardEntry.find({ leaderboardId })
-    .sort({ score: -1 })
-    .limit(50);
-  const me = await LeaderboardEntry.findOne({
-    leaderboardId,
-    userId: req.user._id,
-  });
-  let myRank = null;
-  if (me) {
-    myRank =
-      (await LeaderboardEntry.countDocuments({
-        leaderboardId,
-        score: { $gt: me.score },
-      })) + 1;
-  }
-  res.json({ standings: top, myRank, myScore: me?.score || 0 });
-}
-
 module.exports = {
   playWheel,
-  playRaffle,
-  playLeaderboard,
   playSlot,
   history,
-  standings,
 };

@@ -20,7 +20,7 @@ import type { Control, FieldValues } from "react-hook-form";
 
 interface WheelFormProps {
   defaultValues?: WheelSchemaType;
-  onSubmit: (data: WheelSchemaType) => void;
+  onSubmit: (data: WheelSchemaType, markClean: () => void) => void;
   isSubmitting: boolean;
   mode: "create" | "edit";
 }
@@ -64,13 +64,14 @@ export function WheelForm({
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors, isDirty },
   } = useForm<WheelSchemaType>({
     resolver: zodResolver(wheelSchema),
     defaultValues: defaultValues || EMPTY_DEFAULTS,
   });
 
-  useUnsavedChanges(isDirty);
+  const { markSaved } = useUnsavedChanges(isDirty);
 
   // Watch segments and colors for live preview
   const segments = useWatch({ control, name: "segments" });
@@ -78,7 +79,16 @@ export function WheelForm({
   const borderColor = useWatch({ control, name: "borderColor" });
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+    <Box
+      component="form"
+      onSubmit={handleSubmit((data) =>
+        onSubmit(data, () => {
+          markSaved();
+          reset(data);
+        }),
+      )}
+      noValidate
+    >
       <Grid container spacing={3}>
         {/* Left column — form */}
         <Grid size={{ xs: 12, lg: 7 }}>

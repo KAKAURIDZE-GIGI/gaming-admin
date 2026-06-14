@@ -11,29 +11,6 @@ export const useWheel = (id: string) =>
     enabled: !!id,
   });
 
-export const useRaffles = () =>
-  useQuery({ queryKey: ["raffles"], queryFn: gamesApi.listRaffles });
-
-export const useRaffle = (id: string) =>
-  useQuery({
-    queryKey: ["raffle", id],
-    queryFn: () => gamesApi.getRaffle(id),
-    enabled: !!id,
-  });
-
-export const useLeaderboards = () =>
-  useQuery({
-    queryKey: ["leaderboards"],
-    queryFn: gamesApi.listLeaderboards,
-  });
-
-export const useLeaderboard = (id: string) =>
-  useQuery({
-    queryKey: ["leaderboard", id],
-    queryFn: () => gamesApi.getLeaderboard(id),
-    enabled: !!id,
-  });
-
 export const useSlots = () =>
   useQuery({ queryKey: ["slots"], queryFn: gamesApi.listSlots });
 

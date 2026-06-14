@@ -34,12 +34,17 @@ export function SlotReels({
   const intervals = useRef<number[]>([]);
   const timeouts = useRef<number[]>([]);
   const onSettledRef = useRef(onSettled);
+  const finalGridRef = useRef(finalGrid);
   useEffect(() => {
     onSettledRef.current = onSettled;
   }, [onSettled]);
+  useEffect(() => {
+    finalGridRef.current = finalGrid;
+  }, [finalGrid]);
 
   useEffect(() => {
-    if (spinId === 0 || !finalGrid) return; // nothing spun yet
+    const settledGrid = finalGridRef.current;
+    if (spinId === 0 || !settledGrid) return; // nothing spun yet
 
     const clearAll = () => {
       intervals.current.forEach(clearInterval);
@@ -62,7 +67,7 @@ export function SlotReels({
         clearInterval(intervals.current[reel]);
         setGrid((prev) => {
           const next = prev.map((r) => [...r]);
-          next[reel] = [...finalGrid[reel]];
+          next[reel] = [...settledGrid[reel]];
           return next;
         });
         if (reel === 2) onSettledRef.current();
@@ -70,7 +75,6 @@ export function SlotReels({
     }
 
     return clearAll;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spinId]);
 
   return (

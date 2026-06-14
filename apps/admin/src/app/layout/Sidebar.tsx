@@ -11,8 +11,6 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
-import LeaderboardIcon from "@mui/icons-material/EmojiEvents";
-import RaffleIcon from "@mui/icons-material/ConfirmationNumber";
 import WheelIcon from "@mui/icons-material/Casino";
 import SlotIcon from "@mui/icons-material/VideogameAsset";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -25,12 +23,6 @@ import { useAuth } from "@/features/auth";
 const DRAWER_WIDTH = 260;
 
 const NAV_ITEMS = [
-  {
-    label: "Leaderboards",
-    path: ROUTES.LEADERBOARD.LIST,
-    icon: <LeaderboardIcon />,
-  },
-  { label: "Raffles", path: ROUTES.RAFFLE.LIST, icon: <RaffleIcon /> },
   { label: "Wheels", path: ROUTES.WHEEL.LIST, icon: <WheelIcon /> },
   { label: "Slots", path: ROUTES.SLOT.LIST, icon: <SlotIcon /> },
 ];

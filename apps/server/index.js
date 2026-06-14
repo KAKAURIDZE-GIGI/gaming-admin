@@ -8,8 +8,6 @@ const authRoutes = require("./routes/auth");
 const userAuthRoutes = require("./routes/userAuth");
 const playRoutes = require("./routes/play");
 const gamesRoutes = require("./routes/games");
-const Leaderboard = require("./models/Leaderboard");
-const Raffle = require("./models/Raffle");
 const Wheel = require("./models/Wheel");
 const Slot = require("./models/Slot");
 const { protect } = require("./middleware/auth");
@@ -27,14 +25,6 @@ app.use("/api/games", gamesRoutes);
 app.use("/api/play", playRoutes);
 
 // Resources — all guarded by JWT (`protect`).
-app.use(
-  "/api/leaderboards",
-  resourceRouter(Leaderboard, { label: "Leaderboard", arrayFields: ["prizes"] }, [protect]),
-);
-app.use(
-  "/api/raffles",
-  resourceRouter(Raffle, { label: "Raffle", arrayFields: ["prizes"] }, [protect]),
-);
 app.use(
   "/api/wheels",
   resourceRouter(Wheel, { label: "Wheel", arrayFields: ["segments"] }, [protect]),

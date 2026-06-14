@@ -3,9 +3,8 @@ import { Breadcrumbs as MuiBreadcrumbs, Link, Typography } from "@mui/material";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 const LABEL_MAP: Record<string, string> = {
-  leaderboards: "Leaderboards",
-  raffles: "Raffles",
   wheels: "Wheels",
+  slots: "Slots",
   create: "Create",
   edit: "Edit",
 };

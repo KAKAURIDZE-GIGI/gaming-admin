@@ -1,8 +1,22 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useBlocker } from "react-router-dom";
 
 export function useUnsavedChanges(isDirty: boolean) {
-  const blocker = useBlocker(isDirty);
+  const stateRef = useRef({ isDirty, saved: false });
+
+  useEffect(() => {
+    stateRef.current.isDirty = isDirty;
+    if (!isDirty) {
+      stateRef.current.saved = false;
+    }
+  }, [isDirty]);
+
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    const { isDirty: dirty, saved } = stateRef.current;
+    return (
+      dirty && !saved && currentLocation.pathname !== nextLocation.pathname
+    );
+  });
 
   useEffect(() => {
     if (blocker.state === "blocked") {
@@ -19,11 +33,19 @@ export function useUnsavedChanges(isDirty: boolean) {
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
+      const { isDirty: dirty, saved } = stateRef.current;
+      if (dirty && !saved) {
         e.preventDefault();
       }
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
+  }, []);
+
+  const markSaved = () => {
+    stateRef.current.saved = true;
+    stateRef.current.isDirty = false;
+  };
+
+  return { markSaved };
 }

@@ -1,10 +1,8 @@
 // Read-only game configs for players (active only). Admin CRUD stays on the
-// /api/{wheels,raffles,leaderboards} routes guarded by admin `protect`.
+// /api/{wheels,slots} routes guarded by admin `protect`.
 const express = require("express");
 const { protectUser } = require("../middleware/userAuth");
 const Wheel = require("../models/Wheel");
-const Raffle = require("../models/Raffle");
-const Leaderboard = require("../models/Leaderboard");
 const Slot = require("../models/Slot");
 
 function activeRoutes(Model, label) {
@@ -30,8 +28,6 @@ function activeRoutes(Model, label) {
 const router = express.Router();
 router.use(protectUser);
 router.use("/wheels", activeRoutes(Wheel, "Wheel"));
-router.use("/raffles", activeRoutes(Raffle, "Raffle"));
-router.use("/leaderboards", activeRoutes(Leaderboard, "Leaderboard"));
 router.use("/slots", activeRoutes(Slot, "Slot"));
 
 module.exports = router;

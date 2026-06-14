@@ -20,46 +20,6 @@ export interface Wheel {
   borderColor: string;
 }
 
-export interface RafflePrize {
-  id: string;
-  name: string;
-  type: string;
-  amount: number;
-  quantity: number;
-  imageUrl?: string;
-}
-
-export interface Raffle {
-  id: string;
-  name: string;
-  description: string;
-  endDate: string;
-  drawDate: string;
-  ticketPrice: number;
-  betSizes: number[];
-  maxTicketsPerUser: number;
-  prizes: RafflePrize[];
-  totalTicketLimit: number | null;
-}
-
-export interface LeaderboardPrize {
-  id: string;
-  rank: number;
-  name: string;
-  type: string;
-  amount: number;
-}
-
-export interface Leaderboard {
-  id: string;
-  title: string;
-  description: string;
-  endDate: string;
-  scoringType: string;
-  betSizes: number[];
-  prizes: LeaderboardPrize[];
-}
-
 export interface Slot {
   id: string;
   name: string;
@@ -70,7 +30,7 @@ export interface Slot {
 
 export interface PlayRecord {
   id: string;
-  gameType: "wheel" | "raffle" | "leaderboard" | "slot";
+  gameType: "wheel" | "slot";
   gameName: string;
   bet: number;
   outcome: string;

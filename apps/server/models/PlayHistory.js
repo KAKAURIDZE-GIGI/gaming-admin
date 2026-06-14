@@ -6,13 +6,13 @@ const playHistorySchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
     gameType: {
       type: String,
-      enum: ["wheel", "raffle", "leaderboard", "slot"],
+      enum: ["wheel", "slot"],
       required: true,
     },
     gameId: { type: mongoose.Schema.Types.ObjectId, required: true },
     gameName: String,
     bet: { type: Number, required: true },
-    // Human-readable outcome (segment label, "N tickets", score earned, ...).
+    // Human-readable outcome (segment label, winning lines, ...).
     outcome: String,
     // Net change to balance for this play (winnings minus stake). Can be negative.
     amountWon: { type: Number, required: true },
