@@ -20,6 +20,9 @@ export const leaderboardSchema = z
     status: z.enum(["draft", "active", "completed"]),
     scoringType: z.enum(["points", "wins", "wagered"]),
     prizes: z.array(prizeSchema).min(1, "At least one prize is required"),
+    betSizes: z
+      .array(z.coerce.number().positive("Bet must be greater than 0"))
+      .min(1, "Add at least one bet size"),
     maxParticipants: z.coerce
       .number()
       .int("Must be a whole number")

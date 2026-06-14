@@ -16,6 +16,7 @@ export interface Leaderboard {
   status: "draft" | "active" | "completed";
   scoringType: "points" | "wins" | "wagered";
   prizes: LeaderboardPrize[];
+  betSizes: number[];
   maxParticipants: number;
   createdAt: string;
   updatedAt: string;
@@ -29,5 +30,6 @@ export interface LeaderboardFormValues {
   status: "draft" | "active" | "completed";
   scoringType: "points" | "wins" | "wagered";
   prizes: Omit<LeaderboardPrize, "id">[];
+  betSizes: number[];
   maxParticipants: number;
 }

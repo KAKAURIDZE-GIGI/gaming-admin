@@ -45,6 +45,7 @@ export default function WheelEdit() {
       prizeAmount: s.prizeAmount,
       imageUrl: s.imageUrl,
     })),
+    betSizes: data.betSizes?.length ? data.betSizes : [data.spinCost || 10],
     maxSpinsPerUser: data.maxSpinsPerUser,
     spinCost: data.spinCost,
     backgroundColor: data.backgroundColor,

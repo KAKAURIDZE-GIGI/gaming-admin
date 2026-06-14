@@ -24,6 +24,7 @@ const leaderboardSchema = new mongoose.Schema(
       default: "draft",
     },
     scoringType: { type: String, enum: ["points", "wins", "wagered"] },
+    betSizes: { type: [Number], default: [] },
     prizes: [prizeSchema],
     maxParticipants: Number,
   },

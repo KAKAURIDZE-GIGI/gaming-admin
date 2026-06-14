@@ -23,6 +23,7 @@ const wheelSchema = new mongoose.Schema(
       default: "draft",
     },
     segments: [segmentSchema],
+    betSizes: { type: [Number], default: [] },
     maxSpinsPerUser: Number,
     spinCost: Number,
     backgroundColor: String,

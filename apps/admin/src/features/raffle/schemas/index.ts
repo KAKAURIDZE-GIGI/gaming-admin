@@ -22,6 +22,9 @@ export const raffleSchema = z
     ticketPrice: z.coerce
       .number()
       .positive("Ticket price must be a positive number"),
+    betSizes: z
+      .array(z.coerce.number().positive("Bet must be greater than 0"))
+      .min(1, "Add at least one bet size"),
     maxTicketsPerUser: z.coerce.number().int().min(1, "Must be at least 1"),
     prizes: z.array(rafflePrizeSchema).min(1, "At least one prize is required"),
     totalTicketLimit: z.coerce.number().int().positive().nullable(),

@@ -16,6 +16,8 @@ import { useState } from "react";
 import { raffleSchema, type RaffleSchemaType } from "../schemas";
 import { RafflePrizeForm } from "./RafflePrizeForm";
 import { useUnsavedChanges } from "@/shared/hooks";
+import { BetSizesField } from "@/shared/components";
+import type { Control, FieldValues } from "react-hook-form";
 
 interface RaffleFormProps {
   defaultValues?: RaffleSchemaType;
@@ -33,6 +35,7 @@ const EMPTY_DEFAULTS: RaffleSchemaType = {
   drawDate: "",
   status: "draft",
   ticketPrice: 10,
+  betSizes: [10, 50, 100],
   maxTicketsPerUser: 1,
   prizes: [
     {
@@ -169,6 +172,11 @@ export function RaffleForm({
             error={!!errors.maxTicketsPerUser}
             helperText={errors.maxTicketsPerUser?.message}
           />
+          <Box sx={{ gridColumn: "span 2" }}>
+            <BetSizesField
+              control={control as unknown as Control<FieldValues>}
+            />
+          </Box>
           <Box sx={{ gridColumn: "span 2" }}>
             <FormControlLabel
               control={

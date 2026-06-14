@@ -41,6 +41,7 @@ export default function RaffleEdit() {
     drawDate: data.drawDate.slice(0, 16),
     status: data.status,
     ticketPrice: data.ticketPrice,
+    betSizes: data.betSizes?.length ? data.betSizes : [data.ticketPrice || 10],
     maxTicketsPerUser: data.maxTicketsPerUser,
     prizes: data.prizes.map((p) => ({
       name: p.name,

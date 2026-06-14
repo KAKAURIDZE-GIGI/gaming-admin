@@ -17,6 +17,7 @@ const validData = {
       imageUrl: "https://example.com/img.png",
     },
   ],
+  betSizes: [10, 50, 100],
   maxParticipants: 100,
 };
 

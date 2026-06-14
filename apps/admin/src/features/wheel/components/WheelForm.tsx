@@ -15,6 +15,8 @@ import { wheelSchema, type WheelSchemaType } from "../schemas";
 import { SegmentListForm } from "./SegmentListForm";
 import { WheelPreview } from "./WheelPreview";
 import { useUnsavedChanges } from "@/shared/hooks";
+import { BetSizesField } from "@/shared/components";
+import type { Control, FieldValues } from "react-hook-form";
 
 interface WheelFormProps {
   defaultValues?: WheelSchemaType;
@@ -45,6 +47,7 @@ const EMPTY_DEFAULTS: WheelSchemaType = {
       imageUrl: "https://placehold.co/60x60/3B82F6/FFF?text=P2",
     },
   ],
+  betSizes: [10, 50, 100],
   maxSpinsPerUser: 1,
   spinCost: 0,
   backgroundColor: "#1F2937",
@@ -133,6 +136,11 @@ export function WheelForm({
                 error={!!errors.spinCost}
                 helperText={errors.spinCost?.message}
               />
+              <Box sx={{ gridColumn: "span 2" }}>
+                <BetSizesField
+                  control={control as unknown as Control<FieldValues>}
+                />
+              </Box>
               <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
                   label="Background Color"

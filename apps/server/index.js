@@ -5,6 +5,9 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const resourceRouter = require("./routes/resource");
 const authRoutes = require("./routes/auth");
+const userAuthRoutes = require("./routes/userAuth");
+const playRoutes = require("./routes/play");
+const gamesRoutes = require("./routes/games");
 const Leaderboard = require("./models/Leaderboard");
 const Raffle = require("./models/Raffle");
 const Wheel = require("./models/Wheel");
@@ -15,7 +18,12 @@ app.use(cors());
 app.use(express.json());
 
 // Auth
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes); // admins
+app.use("/api/user-auth", userAuthRoutes); // players
+
+// Player-facing game configs (read-only, active only) + play actions.
+app.use("/api/games", gamesRoutes);
+app.use("/api/play", playRoutes);
 
 // Resources — all guarded by JWT (`protect`).
 app.use(

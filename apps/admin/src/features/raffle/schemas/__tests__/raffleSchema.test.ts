@@ -9,6 +9,7 @@ const validData = {
   drawDate: "2026-03-16T18:00",
   status: "draft" as const,
   ticketPrice: 100,
+  betSizes: [10, 50, 100],
   maxTicketsPerUser: 5,
   prizes: [
     {

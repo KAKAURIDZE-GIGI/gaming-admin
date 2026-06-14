@@ -47,6 +47,7 @@ export default function LeaderboardEdit() {
       amount: p.amount,
       imageUrl: p.imageUrl,
     })),
+    betSizes: data.betSizes?.length ? data.betSizes : [10, 50, 100],
     maxParticipants: data.maxParticipants,
   };
 

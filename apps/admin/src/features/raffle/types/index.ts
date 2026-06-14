@@ -16,6 +16,7 @@ export interface Raffle {
   drawDate: string;
   status: "draft" | "active" | "drawn" | "cancelled";
   ticketPrice: number;
+  betSizes: number[];
   maxTicketsPerUser: number;
   prizes: RafflePrize[];
   totalTicketLimit: number | null;
@@ -31,6 +32,7 @@ export interface RaffleFormValues {
   drawDate: string;
   status: "draft" | "active" | "drawn" | "cancelled";
   ticketPrice: number;
+  betSizes: number[];
   maxTicketsPerUser: number;
   prizes: Omit<RafflePrize, "id">[];
   totalTicketLimit: number | null;

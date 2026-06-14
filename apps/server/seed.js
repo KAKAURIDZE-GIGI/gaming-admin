@@ -14,6 +14,7 @@ const leaderboards = [
     endDate: "2026-03-31T23:59:59.000Z",
     status: "active",
     scoringType: "points",
+    betSizes: [10, 50, 100],
     prizes: [
       { rank: 1, name: "Gold Trophy", type: "coins", amount: 10000, imageUrl: "https://placehold.co/100x100/FFD700/000?text=1st" },
       { rank: 2, name: "Silver Trophy", type: "coins", amount: 5000, imageUrl: "https://placehold.co/100x100/C0C0C0/000?text=2nd" },
@@ -28,6 +29,7 @@ const leaderboards = [
     endDate: "2026-04-30T23:59:59.000Z",
     status: "draft",
     scoringType: "wins",
+    betSizes: [25, 100, 250],
     prizes: [
       { rank: 1, name: "Champion Bundle", type: "bonus", amount: 200, imageUrl: "https://placehold.co/100x100/8B5CF6/FFF?text=1st" },
       { rank: 2, name: "Runner-Up Pack", type: "coins", amount: 8000, imageUrl: "https://placehold.co/100x100/6366F1/FFF?text=2nd" },
@@ -41,6 +43,7 @@ const leaderboards = [
     endDate: "2026-02-28T23:59:59.000Z",
     status: "completed",
     scoringType: "wagered",
+    betSizes: [50, 200, 500],
     prizes: [
       { rank: 1, name: "VIP Package", type: "bonus", amount: 500, imageUrl: "https://placehold.co/100x100/DC2626/FFF?text=VIP" },
       { rank: 2, name: "Elite Spins", type: "freeSpin", amount: 100, imageUrl: "https://placehold.co/100x100/EA580C/FFF?text=2nd" },
@@ -59,6 +62,7 @@ const raffles = [
     drawDate: "2026-04-16T18:00:00.000Z",
     status: "active",
     ticketPrice: 100,
+    betSizes: [100, 250, 500],
     maxTicketsPerUser: 10,
     prizes: [
       { name: "Jackpot Coins", type: "coins", amount: 50000, quantity: 1, imageUrl: "https://placehold.co/100x100/10B981/FFF?text=50K" },
@@ -75,6 +79,7 @@ const raffles = [
     drawDate: "2026-03-22T12:00:00.000Z",
     status: "draft",
     ticketPrice: 10,
+    betSizes: [10, 25, 50],
     maxTicketsPerUser: 50,
     prizes: [
       { name: "Quick Cash", type: "coins", amount: 5000, quantity: 3, imageUrl: "https://placehold.co/100x100/F59E0B/000?text=Cash" },
@@ -89,6 +94,7 @@ const raffles = [
     drawDate: "2026-02-15T15:00:00.000Z",
     status: "drawn",
     ticketPrice: 50,
+    betSizes: [50, 100, 200],
     maxTicketsPerUser: 5,
     prizes: [
       { name: "Love Bundle", type: "bonus", amount: 250, quantity: 2, imageUrl: "https://placehold.co/100x100/EC4899/FFF?text=Love" },
@@ -113,6 +119,7 @@ const wheels = [
     ],
     maxSpinsPerUser: 1,
     spinCost: 0,
+    betSizes: [10, 25, 50],
     backgroundColor: "#1F2937",
     borderColor: "#F59E0B",
   },
@@ -130,6 +137,7 @@ const wheels = [
     ],
     maxSpinsPerUser: 5,
     spinCost: 500,
+    betSizes: [100, 500, 1000],
     backgroundColor: "#111827",
     borderColor: "#EAB308",
   },
@@ -144,6 +152,7 @@ const wheels = [
     ],
     maxSpinsPerUser: 3,
     spinCost: 100,
+    betSizes: [50, 100, 250],
     backgroundColor: "#1a1a2e",
     borderColor: "#e94560",
   },

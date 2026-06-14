@@ -40,6 +40,9 @@ export const wheelSchema = z
       .array(segmentSchema)
       .min(2, "Minimum 2 segments required")
       .max(12, "Maximum 12 segments allowed"),
+    betSizes: z
+      .array(z.coerce.number().positive("Bet must be greater than 0"))
+      .min(1, "Add at least one bet size"),
     maxSpinsPerUser: z.coerce.number().int().min(1, "Must be at least 1"),
     spinCost: z.coerce.number().min(0, "Must be 0 or more"),
     backgroundColor: z

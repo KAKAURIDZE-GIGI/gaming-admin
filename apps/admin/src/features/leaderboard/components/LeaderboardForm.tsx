@@ -13,6 +13,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import { leaderboardSchema, type LeaderboardSchemaType } from "../schemas";
 import { PrizeListForm } from "./PrizeListForm";
 import { useUnsavedChanges } from "@/shared/hooks";
+import { BetSizesField } from "@/shared/components";
+import type { Control, FieldValues } from "react-hook-form";
 
 interface LeaderboardFormProps {
   defaultValues?: LeaderboardSchemaType;
@@ -37,6 +39,7 @@ const EMPTY_DEFAULTS: LeaderboardSchemaType = {
       imageUrl: "https://placehold.co/100x100",
     },
   ],
+  betSizes: [10, 50, 100],
   maxParticipants: 100,
 };
 
@@ -135,6 +138,11 @@ export function LeaderboardForm({
             error={!!errors.maxParticipants}
             helperText={errors.maxParticipants?.message}
           />
+          <Box sx={{ gridColumn: "span 2" }}>
+            <BetSizesField
+              control={control as unknown as Control<FieldValues>}
+            />
+          </Box>
         </Box>
       </Paper>
 

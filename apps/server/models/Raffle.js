@@ -25,6 +25,7 @@ const raffleSchema = new mongoose.Schema(
       default: "draft",
     },
     ticketPrice: Number,
+    betSizes: { type: [Number], default: [] },
     maxTicketsPerUser: Number,
     prizes: [prizeSchema],
     totalTicketLimit: { type: Number, default: null },

@@ -14,6 +14,7 @@ export interface Wheel {
   description: string;
   status: "draft" | "active" | "inactive";
   segments: WheelSegment[];
+  betSizes: number[];
   maxSpinsPerUser: number;
   spinCost: number;
   backgroundColor: string;
@@ -27,6 +28,7 @@ export interface WheelFormValues {
   description: string;
   status: "draft" | "active" | "inactive";
   segments: Omit<WheelSegment, "id">[];
+  betSizes: number[];
   maxSpinsPerUser: number;
   spinCost: number;
   backgroundColor: string;

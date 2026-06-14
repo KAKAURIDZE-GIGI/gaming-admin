@@ -23,6 +23,7 @@ const validData = {
       imageUrl: "https://example.com/b.png",
     },
   ],
+  betSizes: [10, 50, 100],
   maxSpinsPerUser: 1,
   spinCost: 0,
   backgroundColor: "#1F2937",
