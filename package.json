@@ -14,10 +14,15 @@
     "client": "npm run dev --workspace client",
     "client:build": "npm run build --workspace client",
     "client:lint": "npm run lint --workspace client",
+    "client:test:run": "npm run test:run --workspace client",
     "server": "npm start --workspace server",
     "seed": "npm run seed --workspace server",
     "create-admin": "npm run create-admin --workspace server --",
-    "start:all": "concurrently \"npm run server\" \"npm run client\" \"npm run dev\""
+    "start:all": "concurrently \"npm run server\" \"npm run client\" \"npm run dev\"",
+    "lint:all": "npm run client:lint && npm run lint",
+    "build:all": "npm run client:build && npm run build",
+    "test:all": "npm run client:test:run && npm run test:run",
+    "check": "npm run lint:all && npm run test:all && npx tsc -b && npm run build:all"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"

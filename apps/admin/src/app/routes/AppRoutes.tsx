@@ -1,8 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { Suspense } from "react";
-import { CircularProgress, Box } from "@mui/material";
 import { MainLayout } from "@/app/layout";
-import { ErrorBoundary, NotFound } from "@/shared/components";
+import { NotFound } from "@/shared/components";
 import { ROUTES } from "@/shared/lib";
 import { ProtectedRoute } from "@/features/auth";
 import Login from "@/features/auth/pages/Login";
@@ -14,45 +12,15 @@ import SlotList from "@/features/slot/pages/SlotList";
 import SlotCreate from "@/features/slot/pages/SlotCreate";
 import SlotEdit from "@/features/slot/pages/SlotEdit";
 import SlotDetail from "@/features/slot/pages/SlotDetail";
-
-// eslint-disable-next-line react-refresh/only-export-components
-function PageLoader() {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: 400,
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  );
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-function Wrap({
-  children,
-  feature,
-}: {
-  children: React.ReactNode;
-  feature?: string;
-}) {
-  return (
-    <ErrorBoundary featureName={feature}>
-      <Suspense fallback={<PageLoader />}>{children}</Suspense>
-    </ErrorBoundary>
-  );
-}
+import { RouteShell } from "./RouteShell";
 
 export const router = createBrowserRouter([
   {
     path: ROUTES.LOGIN,
     element: (
-      <Wrap feature="Login">
+      <RouteShell feature="Login">
         <Login />
-      </Wrap>
+      </RouteShell>
     ),
   },
   {
@@ -69,66 +37,66 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.WHEEL.LIST,
             element: (
-              <Wrap feature="Wheel">
+              <RouteShell feature="Wheel">
                 <WheelList />
-              </Wrap>
+              </RouteShell>
             ),
           },
           {
             path: ROUTES.WHEEL.CREATE,
             element: (
-              <Wrap feature="Wheel">
+              <RouteShell feature="Wheel">
                 <WheelCreate />
-              </Wrap>
+              </RouteShell>
             ),
           },
           {
             path: "/wheels/:id/edit",
             element: (
-              <Wrap feature="Wheel">
+              <RouteShell feature="Wheel">
                 <WheelEdit />
-              </Wrap>
+              </RouteShell>
             ),
           },
           {
             path: "/wheels/:id",
             element: (
-              <Wrap feature="Wheel">
+              <RouteShell feature="Wheel">
                 <WheelDetail />
-              </Wrap>
+              </RouteShell>
             ),
           },
 
           {
             path: ROUTES.SLOT.LIST,
             element: (
-              <Wrap feature="Slot">
+              <RouteShell feature="Slot">
                 <SlotList />
-              </Wrap>
+              </RouteShell>
             ),
           },
           {
             path: ROUTES.SLOT.CREATE,
             element: (
-              <Wrap feature="Slot">
+              <RouteShell feature="Slot">
                 <SlotCreate />
-              </Wrap>
+              </RouteShell>
             ),
           },
           {
             path: "/slots/:id/edit",
             element: (
-              <Wrap feature="Slot">
+              <RouteShell feature="Slot">
                 <SlotEdit />
-              </Wrap>
+              </RouteShell>
             ),
           },
           {
             path: "/slots/:id",
             element: (
-              <Wrap feature="Slot">
+              <RouteShell feature="Slot">
                 <SlotDetail />
-              </Wrap>
+              </RouteShell>
             ),
           },
 
